@@ -9,6 +9,7 @@ import random
 # initialisation générale
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
+DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
 
 radio.on()
 radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
@@ -34,6 +35,7 @@ def get_id() -> int:
                 return 1
 
     # confirmation (A FAIRE) parce que oui, il existen encore un micro possibilité que les deux micro:bit envoient en même temps le message "ID|1|1" 
+    # en vrai j'ai refais des tests et ça arrive pas mais bon, on sait jamais
 
 def check_connection() -> bool:
     """
@@ -46,6 +48,9 @@ def check_connection() -> bool:
     pass
 
 def get_role() -> str:
+    """
+    La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte.
+    """
     display.show("?")
     while True:
         message = radio.receive()
@@ -65,13 +70,16 @@ def get_role() -> str:
             return "E"
 
 # initialisation de l'ID et du rôle            
+if not DEV_BYPASS_GET_ID:
+    ID = get_id()
+else:
+    ID = 1
 
-ID = get_id()
 
-# debug
-display.show(str(ID))
-sleep(1000)
-display.clear()
+# debug - - - - - - -
+# display.show(str(ID))
+# sleep(1000)
+# display.clear()
 
 ROLE = get_role()
 
