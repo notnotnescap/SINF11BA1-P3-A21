@@ -1,2 +1,2 @@
-# SINF11BA1-P3-A21
- Repo du projet 3
+# Projet 3 : le be:bi
+Cette repo contient le code source du projet 3

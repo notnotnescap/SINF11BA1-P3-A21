@@ -68,6 +68,29 @@ def get_role() -> str:
             display.clear()
             print("Child")
             return "E"
+        
+def wait_for_button_up_not_cenceled(button: str) -> bool:
+    """
+    prend en paramètre le bouton à attendre (a, b ou ab)
+    Attend que le bouton soit relaché
+    """
+    if button.lower() == "a":
+        while button_a.is_pressed() and not button_b.is_pressed():
+            pass
+        if button_b.is_pressed():
+            return False
+        else:
+            return True
+    elif button.lower() == "b":
+        while button_b.is_pressed() and not button_a.is_pressed():
+            pass
+        if button_a.is_pressed():
+            return False
+        else:
+            return True
+    elif button.lower() == "ab":
+        while button_a.is_pressed() or button_b.is_pressed():
+            pass
 
 # initialisation de l'ID et du rôle            
 if not DEV_BYPASS_GET_ID:
@@ -97,6 +120,66 @@ elif ROLE == "P":
     # initialisation de la m:b Parent
     class Parent:
         def __init__(self) -> None:
-            pass
+            self.quantite_de_lait = 0
+            self.index_menu = 0
+        
+        def menu(self):
+            """permet de choisir le mode"""
+            # l'idéal serait d'utiliser un dictionnaire
+            # Pour l'instant il y a 4 modes: A,B,C,D (pour les tests)
+            # ils auront des noms plus tard
 
-    # tout le code de la m:b Parent ici
+            # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
+
+            while True:
+                if self.index_menu == 0:
+                    display.show("A")
+                elif self.index_menu == 1:
+                    display.show("B")
+                elif self.index_menu == 2:
+                    display.show("C")
+                elif self.index_menu == 3:
+                    display.show("D")
+                
+                if button_a.is_pressed() and button_b.is_pressed():
+                    # pour sélectionner le mode il faut appuyer sur A et B en même temps
+                    display.clear()
+                    # sleep(1000)
+                    # display.show(self.index_menu) # affiche le mode sélectionné (dans le futur, affichera le nom du mode)
+                    # sleep(1000)
+
+                    # et ici le programme devra lancer le mode selon l'inex du menu sélectionné
+                    # pour l'instant, peu importe l'index, il lance le mode compteur (qui n'est pas encore fait et affiche juste un "?")
+
+                    self.mode_compteur()
+
+                elif button_a.is_pressed():
+                    if wait_for_button_up_not_cenceled("a"):
+                        # cette fonction attend juste que le bouton soit relaché et s'assure qu'on a pas essayé d'appuyer sur A et B en même temps
+                        # sinon il faut timer parfaitement l'appui sur les deux boutons et c'est horrible
+                        self.index_menu -= 1
+                        if self.index_menu < 0:
+                            self.index_menu = 3 # ici dans le futur il faudra mettre la longueur du dictionnaire du menu
+
+                elif button_b.is_pressed():
+                    if wait_for_button_up_not_cenceled("b"):
+                        self.index_menu += 1
+                        if self.index_menu > 3:
+                            self.index_menu = 0
+
+        def mode_compteur(self):
+            """permet de compter la quantité de lait"""
+            # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
+            # la fonction n'est pas encore faite, elle affiche juste un "?"
+            display.show("?")
+            while True:
+                if pin_logo.is_touched():
+                    self.menu()
+
+        def mode_recherche(self):
+            """permet de trouver la m:b Enfant"""
+            # A FAIRE (feature bonus)
+            # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
+            pass
+    
+    Parent().menu()
