@@ -6,7 +6,7 @@ from microbit import *
 import radio
 import random
 
-# initialisation
+# initialisation générale
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
 
@@ -16,18 +16,20 @@ radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 def get_id() -> int:
     """
     Protocole MicroID™️ permettant d'attribuer un ID (1 ou 2) à chaque micro:bit
+
+    La microbit commence par demander si elle peut être la m:b 1. Puis, elle écoute si elle reçoit une réponse.
+    Si elle reçoit la première le message d'une autre micro:bit, elle devient la m:b 2 et envoie une réponse autaurisant l'autre m:b à devenir la m:b 1.
     """
     display.show(Image("00000:""00000:""90909:""00000:""00000"))
+    radio.send("ID|1|1") # est ce que je peux etre la m:b 1?
     while True:
-        radio.send("ID|1|1") # can i be mb1?
-        sleep(random.randint(0, 100))
         message = radio.receive()
         if message:
-            if message == "ID|1|1": #can i be mb1?
-                radio.send("ID|1|2") # yes you can, i'm mb2!
+            if message == "ID|1|1": #est ce que je peux etre la m:b 1?
+                radio.send("ID|1|2") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
                 return 2
-            elif message == "ID|1|2": # yes you can, i'm mb2!
+            elif message == "ID|1|2": # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 1")
                 return 1
 
@@ -36,6 +38,9 @@ def get_id() -> int:
 def check_connection() -> bool:
     """
     Vérifie si la connexion est toujours active
+
+    La m:b 1 commence par envoyer un message pour demander si la m:b 2 est toujours là.
+    La m:b 2 répond seulement si elle reçoit le message de la m:b 1.
     """
     # A FAIRE
     pass
@@ -58,11 +63,32 @@ def get_role() -> str:
             display.clear()
             print("Child")
             return "E"
-            
+
+# initialisation de l'ID et du rôle            
 
 ID = get_id()
+
 # debug
-# display.show(str(ID))
-# sleep(3000)
+display.show(str(ID))
+sleep(1000)
 display.clear()
+
 ROLE = get_role()
+
+# initialisation de la m:b Enfant
+if ROLE == "E":
+    # initialisation de la m:b Enfant
+    class Enfant:
+        def __init__(self) -> None:
+            self.eveil = 0
+
+    # tout le code de la m:b Enfant ici
+
+# initialisation de la m:b Parent
+elif ROLE == "P":
+    # initialisation de la m:b Parent
+    class Parent:
+        def __init__(self) -> None:
+            pass
+
+    # tout le code de la m:b Parent ici
