@@ -212,12 +212,13 @@ elif ROLE == "P":
                     else:
                         display.show(IMAGE_SLEEP_SEQUENCE[1])
 
-
-
         def mode_recherche(self):
             """permet de trouver la m:b Enfant"""
             # A FAIRE (feature bonus)
             # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
-            pass
+            while not pin_logo.is_touched():
+                force_signal = radio.receive_full()[1]
+                print(force_signal)
+            self.menu()
     
     Parent().menu()
