@@ -2,9 +2,9 @@
 P3-SINF11BA1-A21
 """
 
+import random
 from microbit import *
 import radio
-import random
 
 # initialisation générale
 INITIAL_CHANNEL = 69
@@ -18,34 +18,38 @@ radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
 
 class ImagePoint():
+    """Classe permettant de gérer une représentation visuelle de la quantité de lait sur l'écran de la m:b Parent"""
     def __init__(self) -> None:
         self.imageStruc = "00000:""00000:""00000:""00000:""00000"
         self.image = Image(self.imageStruc)
 
     def showImage(self):
+        """Retourne l'image de la quantité de lait"""
         return Image(self.imageStruc)
-        
+
     def checkStruc(self):
+        """Retourne l'index du premier 0 dans la structure de l'image"""
         n = 0
         for i in self.imageStruc:
             if str(i).isdigit():
                 if i == "0":
                     return n
-            
             n+=1
         return n
     
     def addPin(self) -> None:
+        """Ajoute un point à la représentation visuelle de la quantité de lait"""
         n = self.checkStruc()
         if n > 28:
-           pass
+            pass
         else:
-            print("OUI")
+            print("OUI") # on peut retirer ?
             self.imageStruc = self.imageStruc[:n] + "9" + self.imageStruc[n + 1:]
         self.image = Image(self.imageStruc)
         print("[INFO] STRUCTURE IMAGE", self.imageStruc)
-        
+
     def removePin(self) -> None:
+        """Retire un point à la représentation visuelle de la quantité de lait"""
         n = self.checkStruc()
         print(n)
         if n > 28:
@@ -140,7 +144,7 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
         while button_a.is_pressed() or button_b.is_pressed():
             pass
 
-# initialisation de l'ID et du rôle            
+# initialisation de l'ID et du rôle
 if not DEV_BYPASS_GET_ID:
     ID = get_id()
 else:
@@ -159,6 +163,7 @@ ROLE = get_role()
 if ROLE == "E":
     # initialisation de la m:b Enfant
     class Enfant:
+        """Classe contenant les methodes et attributs de la m:b Enfant"""
         def __init__(self) -> None:
             self.eveil = 0
 
@@ -171,10 +176,11 @@ if ROLE == "E":
 elif ROLE == "P":
     # initialisation de la m:b Parent
     class Parent:
+        """Classe contenant les methodes et attributs de la m:b Parent"""
         def __init__(self) -> None:
             self.quantite_de_lait = 0
             self.index_menu = 0
-        
+
         def menu(self):
             """permet de choisir le mode"""
             # l'idéal serait d'utiliser un dictionnaire
@@ -184,7 +190,7 @@ elif ROLE == "P":
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             display.clear()
             sleep(500)
-            
+
             while True:
                 if self.index_menu == 0:
                     display.show("L") # Lait
@@ -194,7 +200,7 @@ elif ROLE == "P":
                     display.show("T") # Température
                 elif self.index_menu == 3:
                     display.show("R") # Recherche
-                
+
                 if button_a.is_pressed() and button_b.is_pressed():
                     # pour sélectionner le mode il faut appuyer sur A et B en même temps
                     display.clear()
@@ -233,13 +239,13 @@ elif ROLE == "P":
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             imageLait = ImagePoint()
-            
+
             # moyen idéal est de tout gérer dans une seule fonction
             for x in range(self.quantite_de_lait):
                 display.show(Image(imageLait.imageStruc))
                 imageLait.addPin()
                 sleep(20)
-            
+
             while True:
                 display.show(Image(imageLait.imageStruc))
                 if button_b.is_pressed():
@@ -255,11 +261,11 @@ elif ROLE == "P":
                     if self.quantite_de_lait > 0:
                         self.quantite_de_lait -= 1
                     wait_for_button_up_not_cenceled("a")
-                
+
                 if pin_logo.is_touched():
                     self.menu()
-                
-            
+
+
 
         def mode_status(self):
             """permet de voir l'état de l'Enfant"""
@@ -294,5 +300,5 @@ elif ROLE == "P":
                 # else:
                 #     display.show("1")
             self.menu()
-    
+
     Parent().menu()
