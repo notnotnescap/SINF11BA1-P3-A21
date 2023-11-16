@@ -11,6 +11,8 @@ INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
 DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
 
+IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
+
 radio.on()
 radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
@@ -100,9 +102,10 @@ else:
 
 
 # debug - - - - - - -
-# display.show(str(ID))
-# sleep(1000)
-# display.clear()
+if not DEV_BYPASS_GET_ID:
+    display.show(str(ID))
+    sleep(1000)
+    display.clear()
 
 ROLE = get_role()
 
@@ -114,6 +117,9 @@ if ROLE == "E":
             self.eveil = 0
 
     # tout le code de la m:b Enfant ici
+    while True:
+        radio.send("STATUS|6|ASLEEP")
+        sleep(2000)
 
 # initialisation de la m:b Parent
 elif ROLE == "P":
@@ -133,11 +139,11 @@ elif ROLE == "P":
 
             while True:
                 if self.index_menu == 0:
-                    display.show("A")
+                    display.show("L")
                 elif self.index_menu == 1:
-                    display.show("B")
+                    display.show("S")
                 elif self.index_menu == 2:
-                    display.show("C")
+                    display.show("T")
                 elif self.index_menu == 3:
                     display.show("D")
                 
@@ -151,7 +157,15 @@ elif ROLE == "P":
                     # et ici le programme devra lancer le mode selon l'inex du menu sélectionné
                     # pour l'instant, peu importe l'index, il lance le mode compteur (qui n'est pas encore fait et affiche juste un "?")
 
-                    self.mode_compteur()
+                    # self.mode_compteur()
+                    if self.index_menu == 1:
+                        self.mode_status()
+                    else:
+                        for x in range(3):
+                            display.show("?")
+                            sleep(100)
+                            display.clear()
+                            sleep(100)
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -175,6 +189,26 @@ elif ROLE == "P":
             while True:
                 if pin_logo.is_touched():
                     self.menu()
+
+        def mode_status(self):
+            """permet de voir l'état de l'Enfant"""
+            # NOT DEBUGGED YET
+            animation_counter = 0
+            display.show(IMAGE_SLEEP_SEQUENCE[1])
+            while True:
+                if pin_logo.is_touched():
+                    self.menu()
+                message = radio.receive()
+                if message == "STATUS|6|ASLEEP":
+                    animation_counter += 1
+                    if animation_counter % 5 == 0:
+                        display.show(IMAGE_SLEEP_SEQUENCE[0])
+                    elif animation_counter % 2 == 0:
+                        display.show(IMAGE_SLEEP_SEQUENCE[2])
+                    else:
+                        display.show(IMAGE_SLEEP_SEQUENCE[1])
+
+
 
         def mode_recherche(self):
             """permet de trouver la m:b Enfant"""
