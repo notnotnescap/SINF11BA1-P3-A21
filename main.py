@@ -156,7 +156,7 @@ elif ROLE == "P":
                     # display.show(self.index_menu) # affiche le mode sélectionné (dans le futur, affichera le nom du mode)
                     # sleep(1000)
 
-                    # et ici le programme devra lancer le mode selon l'inex du menu sélectionné
+                    # et ici le programme devra lancer le mode selon l'index du menu sélectionné
                     # pour l'instant, peu importe l'index, il lance le mode compteur (qui n'est pas encore fait et affiche juste un "?")
 
                     # self.mode_compteur()
@@ -164,12 +164,8 @@ elif ROLE == "P":
                     sleep(500)
                     if self.index_menu == 1:
                         self.mode_status()
-                    else:
-                        for x in range(3):
-                            display.show("?")
-                            sleep(100)
-                            display.clear()
-                            sleep(100)
+                    if self.index_menu == 0:
+                        self.mode_compteur()
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -189,10 +185,8 @@ elif ROLE == "P":
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             # la fonction n'est pas encore faite, elle affiche juste un "?"
-            display.show("?")
-            while True:
-                if pin_logo.is_touched():
-                    self.menu()
+            display.show("T")
+            
 
         def mode_status(self):
             """permet de voir l'état de l'Enfant"""
