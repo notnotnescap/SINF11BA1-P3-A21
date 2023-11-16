@@ -186,6 +186,7 @@ elif ROLE == "P":
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             # la fonction n'est pas encore faite, elle affiche juste un "?"
             display.show("T")
+            sleep(1000)
             
 
         def mode_status(self):
