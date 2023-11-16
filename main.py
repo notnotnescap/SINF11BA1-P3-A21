@@ -119,7 +119,7 @@ if ROLE == "E":
     # tout le code de la m:b Enfant ici
     while True:
         radio.send("STATUS|6|ASLEEP")
-        sleep(2000)
+        sleep(1500)
 
 # initialisation de la m:b Parent
 elif ROLE == "P":
@@ -136,14 +136,16 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-
+            display.clear()
+            sleep(500)
+            
             while True:
                 if self.index_menu == 0:
-                    display.show("L")
+                    display.show("L") # Lait
                 elif self.index_menu == 1:
-                    display.show("S")
+                    display.show("S") # Statut
                 elif self.index_menu == 2:
-                    display.show("T")
+                    display.show("T") # Température
                 elif self.index_menu == 3:
                     display.show("D")
                 
@@ -158,6 +160,8 @@ elif ROLE == "P":
                     # pour l'instant, peu importe l'index, il lance le mode compteur (qui n'est pas encore fait et affiche juste un "?")
 
                     # self.mode_compteur()
+                    display.clear()
+                    sleep(500)
                     if self.index_menu == 1:
                         self.mode_status()
                     else:
