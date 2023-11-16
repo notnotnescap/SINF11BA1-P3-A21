@@ -6,11 +6,21 @@ from microbit import *
 import radio
 import random
 
+# initialisation générale
+INITIAL_CHANNEL = 69
+INITIAL_GROUP = 42
+DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
+
+IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
+
+radio.on()
+radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
+
+
 class ImagePoint():
     def __init__(self) -> None:
         self.imageStruc = "00000:""00000:""00000:""00000:""00000"
         self.image = Image(self.imageStruc)
-        
 
     def showImage(self):
         return Image(self.imageStruc)
@@ -24,6 +34,7 @@ class ImagePoint():
             
             n+=1
         return n
+    
     def addPin(self) -> None:
         n = self.checkStruc()
         if n > 28:
@@ -34,7 +45,6 @@ class ImagePoint():
         self.image = Image(self.imageStruc)
         print("[INFO] STRUCTURE IMAGE", self.imageStruc)
         
-    
     def removePin(self) -> None:
         n = self.checkStruc()
         print(n)
@@ -50,20 +60,7 @@ class ImagePoint():
                 self.imageStruc = self.imageStruc[:n-1] + "0" + self.imageStruc[n:]
         self.image = Image(self.imageStruc)
         print("[INFO] STRUCTURE IMAGE", self.imageStruc)
-        
 
-                
-                
-
-# initialisation générale
-INITIAL_CHANNEL = 69
-INITIAL_GROUP = 42
-DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
-
-IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
-
-radio.on()
-radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
 def get_id() -> int:
     """
@@ -237,17 +234,30 @@ elif ROLE == "P":
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             imageLait = ImagePoint()
             
+            # moyen idéal est de tout gérer dans une seule fonction
+            for x in range(self.quantite_de_lait):
+                display.show(Image(imageLait.imageStruc))
+                imageLait.addPin()
+                sleep(20)
+            
             while True:
                 display.show(Image(imageLait.imageStruc))
                 if button_b.is_pressed():
-                    sleep(300)
-                    imageLait.addPin()
                     display.show(Image(imageLait.imageStruc))
+                    imageLait.addPin()
+                    if self.quantite_de_lait < 25:
+                        self.quantite_de_lait += 1
+                    wait_for_button_up_not_cenceled("b")
 
                 if button_a.is_pressed():
-                    sleep(300)
-                    imageLait.removePin()
                     display.show(Image(imageLait.imageStruc))
+                    imageLait.removePin()
+                    if self.quantite_de_lait > 0:
+                        self.quantite_de_lait -= 1
+                    wait_for_button_up_not_cenceled("a")
+                
+                if pin_logo.is_touched():
+                    self.menu()
                 
             
 
