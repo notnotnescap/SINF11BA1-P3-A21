@@ -6,6 +6,55 @@ from microbit import *
 import radio
 import random
 
+class ImagePoint():
+    def __init__(self) -> None:
+        self.imageStruc = "00000:""00000:""00000:""00000:""00000"
+        self.image = Image(self.imageStruc)
+        
+
+    def showImage(self):
+        return Image(self.imageStruc)
+        
+    def checkStruc(self):
+        n = 0
+        for i in self.imageStruc:
+            if str(i).isdigit():
+                if i == "0":
+                    return n
+            
+            n+=1
+        return n
+    def addPin(self) -> None:
+        n = self.checkStruc()
+        if n > 28:
+           pass
+        else:
+            print("OUI")
+            self.imageStruc = self.imageStruc[:n] + "9" + self.imageStruc[n + 1:]
+        self.image = Image(self.imageStruc)
+        print("[INFO] STRUCTURE IMAGE", self.imageStruc)
+        
+    
+    def removePin(self) -> None:
+        n = self.checkStruc()
+        print(n)
+        if n > 28:
+            self.imageStruc = "99999:""99999:""99999:""99999:""99990"
+        elif n == 0:
+            pass
+        else:
+            if n in [6, 12, 18, 24]:
+                print(":")
+                self.imageStruc = self.imageStruc[:n-2] + "0:" + self.imageStruc[n:]
+            else:
+                self.imageStruc = self.imageStruc[:n-1] + "0" + self.imageStruc[n:]
+        self.image = Image(self.imageStruc)
+        print("[INFO] STRUCTURE IMAGE", self.imageStruc)
+        
+
+                
+                
+
 # initialisation générale
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
@@ -186,9 +235,20 @@ elif ROLE == "P":
         def mode_compteur(self):
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            # la fonction n'est pas encore faite, elle affiche juste un "?"
-            display.show("T")
-            sleep(10000)
+            imageLait = ImagePoint()
+            
+            while True:
+                display.show(Image(imageLait.imageStruc))
+                if button_b.is_pressed():
+                    sleep(300)
+                    imageLait.addPin()
+                    display.show(Image(imageLait.imageStruc))
+
+                if button_a.is_pressed():
+                    sleep(300)
+                    imageLait.removePin()
+                    display.show(Image(imageLait.imageStruc))
+                
             
 
         def mode_status(self):
