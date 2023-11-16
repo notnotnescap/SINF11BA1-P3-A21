@@ -147,7 +147,7 @@ elif ROLE == "P":
                 elif self.index_menu == 2:
                     display.show("T") # Température
                 elif self.index_menu == 3:
-                    display.show("D")
+                    display.show("R") # Recherche
                 
                 if button_a.is_pressed() and button_b.is_pressed():
                     # pour sélectionner le mode il faut appuyer sur A et B en même temps
@@ -166,6 +166,8 @@ elif ROLE == "P":
                         self.mode_status()
                     if self.index_menu == 0:
                         self.mode_compteur()
+                    if self.index_menu == 3:
+                        self.mode_recherche()
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -212,8 +214,15 @@ elif ROLE == "P":
             # A FAIRE (feature bonus)
             # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
             while not pin_logo.is_touched():
-                force_signal = radio.receive_full()[1]
-                print(force_signal)
+                if radio.receive_full():
+                    force_signal = radio.receive_full()
+                    print(force_signal)
+                # if force_signal > -50:
+                #     display.show("3")
+                # elif force_signal > -100:
+                #     display.show("2")
+                # else:
+                #     display.show("1")
             self.menu()
     
     Parent().menu()
