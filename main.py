@@ -10,14 +10,82 @@ import radio
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
 DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
-
+MDP = "00900:00900:00900:00900:00900"
 IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
 
 radio.on()
 radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
+class ImageMdp():
+    def __init__(self) -> None:
+        self.StrucMdpActu = "90000:00000:00000:00000:00000"
+        self.StrucMdpFin = MDP
+        self.imageMdp = Image(self.StrucMdpActu)
+    
+    def checkEntry(self) -> bool:
+        if self.StrucMdpFin == self.StrucMdpActu:
+            return True
+        else:
+            return False
+        
+    def changeImage(self, index:int, dir) -> None:
+        n = 0
+        if index in [5, 11, 17, 23]:
+            return False
+        for i in range(self.StrucMdpActu):
+            if n == index and self.StrucMdpActu[index] == "0":
+                self.StrucMdpActu = self.StrucMdpActu[:index-1] + "9" + self.StrucMdpActu[index+1:]
+            if n == index and self.StrucMdpActu[index] == "9":
+                self.StrucMdpActu = self.StrucMdpActu[:index-1] + "0" + self.StrucMdpActu[index+1:]
+    
+    def changePosition(self, dir:str):
+        for i in range(len(self.StrucMdpActu)):
+            if self.StrucMdpActu[i] == "9":
+                print(i)
+                if dir == "r":
+                    if i == 28:
+                        self.StrucMdpActu = "00000:00000:00000:00000:00009"
+                        print(self.StrucMdpActu)
+                        return True
+                    
+                    elif self.StrucMdpActu[i+1] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i] + "0:" + "9" + self.StrucMdpActu[i+3:]
+                        print(self.StrucMdpActu)
+                        return True
+                    
+                    else:
+                        self.StrucMdpActu = self.StrucMdpActu[:i] + "0" + "9" + self.StrucMdpActu[i+2:]
+                        print(self.StrucMdpActu)
+                        return True
 
-class ImagePoint():
+                elif dir == "l":
+                    if self.StrucMdpActu[i-1] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + "9:" + "0" + self.StrucMdpActu[i+1:]
+                        print(self.StrucMdpActu)
+                        return True
+                    else:
+                        if self.StrucMdpActu[i-2] == ":":
+                            self.StrucMdpActu = self.StrucMdpActu[:i-2] + ":9" + "0" + self.StrucMdpActu[i+1:]
+                        elif i == 1:
+                            self.StrucMdpActu = "90000:00000:00000:00000:00000"
+                            print(self.StrucMdpActu)
+                            return True
+                        elif i == 0:
+                            self.StrucMdpActu = "90000:00000:00000:00000:00000"
+                            print(self.StrucMdpActu)
+                            return True
+                        else:
+                            self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
+                        print(self.StrucMdpActu)
+                        return True
+                    
+    
+
+        
+
+
+
+class ImageCompteurLait():
     """Classe permettant de gérer une représentation visuelle de la quantité de lait sur l'écran de la m:b Parent"""
     def __init__(self) -> None:
         self.imageStruc = "00000:""00000:""00000:""00000:""00000"
@@ -58,7 +126,6 @@ class ImagePoint():
             pass
         else:
             if n in [6, 12, 18, 24]:
-                print(":")
                 self.imageStruc = self.imageStruc[:n-2] + "0:" + self.imageStruc[n:]
             else:
                 self.imageStruc = self.imageStruc[:n-1] + "0" + self.imageStruc[n:]
@@ -143,8 +210,24 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
     elif button.lower() == "ab":
         while button_a.is_pressed() or button_b.is_pressed():
             pass
+def check_mdp():
+    imageMdp = ImageMdp()
+    while True:
+        display.show(Image(imageMdp.StrucMdpActu))
+        if button_b.is_pressed():
+            sleep(300)
+            imageMdp.changePosition(dir="r")
+            wait_for_button_up_not_cenceled("a")
+        if button_a.is_pressed():
+            sleep(300)
+            imageMdp.changePosition(dir="l")
+            wait_for_button_up_not_cenceled("b")
+        check = imageMdp.checkEntry()
+        if check:
+            return True
 
 # initialisation de l'ID et du rôle
+
 if not DEV_BYPASS_GET_ID:
     ID = get_id()
 else:
@@ -188,6 +271,7 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
+            check_mdp()
             display.clear()
             sleep(500)
 
@@ -238,7 +322,7 @@ elif ROLE == "P":
         def mode_compteur(self):
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            imageLait = ImagePoint()
+            imageLait = ImageCompteurLait()
 
             # moyen idéal est de tout gérer dans une seule fonction
             for x in range(self.quantite_de_lait):
