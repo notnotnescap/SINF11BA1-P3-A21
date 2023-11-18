@@ -215,13 +215,11 @@ def check_mdp():
     while True:
         display.show(Image(imageMdp.StrucMdpActu))
         if button_b.is_pressed():
-            sleep(300)
             imageMdp.changePosition(dir="r")
-            wait_for_button_up_not_cenceled("a")
-        if button_a.is_pressed():
-            sleep(300)
-            imageMdp.changePosition(dir="l")
             wait_for_button_up_not_cenceled("b")
+        if button_a.is_pressed():
+            imageMdp.changePosition(dir="l")
+            wait_for_button_up_not_cenceled("a")
         check = imageMdp.checkEntry()
         if check:
             return True
