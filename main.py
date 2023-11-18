@@ -6,25 +6,32 @@ from microbit import *
 import radio
 import random
 
-class ImagePoint():
-    def __init__(self) -> None:
-        self.imageStruc = "00000:""00000:""00000:""00000:""00000"
-        self.image = Image(self.imageStruc)
-        
+class ImagePoint(): # Classe image pour le menu de la quantité de lait, 
+    # CHAQUE POINT LUMINEUX CORRESPONT A 100ML DE LAIT
+    def __init__(self, strucAct) -> None:
+        self.imageStruc = "00000:""00000:""00000:""00000:""00000" # Structure standart que l'object Image prend en d'une image
+        self.image = Image(self.imageStruc) # Initialisation d'un object Image avec un display totalement étein (que des 0)
+        self.imageStruc = strucAct
 
-    def showImage(self):
+    def showImage(self) -> object:
         return Image(self.imageStruc)
         
-    def checkStruc(self):
+    def checkStruc(self) -> int(): # Checker a quel point le display est allumé ou non (cela correspond donc à la quantité de lait ingurgité)
         n = 0
-        for i in self.imageStruc:
+        for i in self.imageStruc: 
             if str(i).isdigit():
-                if i == "0":
+                if i == "0": # Dès que l'on croise un 0 dans la Structure du display, on arrete la fonction et on renvoit directement l'index de ce premier 0 dans la chaine de caractère structure
                     return n
             
-            n+=1
+            n+=1 # Incrémentation pour avoir l'index d'un potentiel 0
         return n
-    def addPin(self) -> None:
+    
+    def addPin(self) -> None: 
+        """
+        @pre : /
+        @post : Ajouter un point lumineux à la suite des autres dans le display, la fonction ne
+        retourne aucune valeur
+        """
         n = self.checkStruc()
         if n > 28:
            pass
@@ -36,6 +43,11 @@ class ImagePoint():
         
     
     def removePin(self) -> None:
+        """
+        @pre : /
+        @post : Enlever un point lumineux dans le display, la fonction ne
+        retourne aucune valeur
+        """
         n = self.checkStruc()
         print(n)
         if n > 28:
@@ -177,8 +189,9 @@ elif ROLE == "P":
         def __init__(self) -> None:
             self.quantite_de_lait = 0
             self.index_menu = 0
+            self.imagecompAct = "00000:""00000:""00000:""00000:""00000"
         
-        def menu(self):
+        def menu(self) -> None:
             """permet de choisir le mode"""
             # l'idéal serait d'utiliser un dictionnaire
             # Pour l'instant il y a 4 modes: A,B,C,D (pour les tests)
@@ -194,7 +207,7 @@ elif ROLE == "P":
                 elif self.index_menu == 1:
                     display.show("S") # Statut
                 elif self.index_menu == 2:
-                    display.show("T") # Température
+                    display.show("M") # Température
                 elif self.index_menu == 3:
                     display.show("D")
                 
@@ -214,7 +227,7 @@ elif ROLE == "P":
                     if self.index_menu == 1:
                         self.mode_status()
                     if self.index_menu == 0:
-                        self.mode_compteur()
+                        self.mode_compteur(self.imagecompAct)
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -230,13 +243,15 @@ elif ROLE == "P":
                         if self.index_menu > 3:
                             self.index_menu = 0
 
-        def mode_compteur(self):
+        def mode_compteur(self, struc) -> None:
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            imageLait = ImagePoint()
+            imageLait = ImagePoint(struc)
             
+            display.show(Image(self.imagecompAct))
             while True:
-                display.show(Image(imageLait.imageStruc))
+                
+                
                 if button_b.is_pressed():
                     sleep(300)
                     imageLait.addPin()
@@ -247,9 +262,14 @@ elif ROLE == "P":
                     imageLait.removePin()
                     display.show(Image(imageLait.imageStruc))
                 
+                if pin_logo.is_touched():
+                    self.imagecompAct = imageLait.imageStruc
+                    print(self.imagecompAct)
+                    self.menu()
+                
             
 
-        def mode_status(self):
+        def mode_status(self) -> None:
             """permet de voir l'état de l'Enfant"""
             # NOT DEBUGGED YET
             animation_counter = 0
