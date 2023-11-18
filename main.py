@@ -2,52 +2,54 @@
 P3-SINF11BA1-A21
 """
 
+import random
 from microbit import *
 import radio
-import random
 
-class ImagePoint(): # Classe image pour le menu de la quantité de lait, 
-    # CHAQUE POINT LUMINEUX CORRESPONT A 100ML DE LAIT
-    def __init__(self, strucAct) -> None:
-        self.imageStruc = "00000:""00000:""00000:""00000:""00000" # Structure standart que l'object Image prend en d'une image
-        self.image = Image(self.imageStruc) # Initialisation d'un object Image avec un display totalement étein (que des 0)
-        self.imageStruc = strucAct
+# initialisation générale
+INITIAL_CHANNEL = 69
+INITIAL_GROUP = 42
+DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
 
-    def showImage(self) -> object:
+IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
+
+radio.on()
+radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
+
+
+class ImagePoint():
+    """Classe permettant de gérer une représentation visuelle de la quantité de lait sur l'écran de la m:b Parent"""
+    def __init__(self) -> None:
+        self.imageStruc = "00000:""00000:""00000:""00000:""00000"
+        self.image = Image(self.imageStruc)
+
+    def showImage(self):
+        """Retourne l'image de la quantité de lait"""
         return Image(self.imageStruc)
-        
-    def checkStruc(self) -> int(): # Checker a quel point le display est allumé ou non (cela correspond donc à la quantité de lait ingurgité)
+
+    def checkStruc(self):
+        """Retourne l'index du premier 0 dans la structure de l'image"""
         n = 0
-        for i in self.imageStruc: 
+        for i in self.imageStruc:
             if str(i).isdigit():
-                if i == "0": # Dès que l'on croise un 0 dans la Structure du display, on arrete la fonction et on renvoit directement l'index de ce premier 0 dans la chaine de caractère structure
+                if i == "0":
                     return n
-            
-            n+=1 # Incrémentation pour avoir l'index d'un potentiel 0
+            n+=1
         return n
     
-    def addPin(self) -> None: 
-        """
-        @pre : /
-        @post : Ajouter un point lumineux à la suite des autres dans le display, la fonction ne
-        retourne aucune valeur
-        """
+    def addPin(self) -> None:
+        """Ajoute un point à la représentation visuelle de la quantité de lait"""
         n = self.checkStruc()
         if n > 28:
-           pass
+            pass
         else:
-            print("OUI")
+            print("OUI") # on peut retirer ?
             self.imageStruc = self.imageStruc[:n] + "9" + self.imageStruc[n + 1:]
         self.image = Image(self.imageStruc)
         print("[INFO] STRUCTURE IMAGE", self.imageStruc)
-        
-    
+
     def removePin(self) -> None:
-        """
-        @pre : /
-        @post : Enlever un point lumineux dans le display, la fonction ne
-        retourne aucune valeur
-        """
+        """Retire un point à la représentation visuelle de la quantité de lait"""
         n = self.checkStruc()
         print(n)
         if n > 28:
@@ -62,20 +64,7 @@ class ImagePoint(): # Classe image pour le menu de la quantité de lait,
                 self.imageStruc = self.imageStruc[:n-1] + "0" + self.imageStruc[n:]
         self.image = Image(self.imageStruc)
         print("[INFO] STRUCTURE IMAGE", self.imageStruc)
-        
 
-                
-                
-
-# initialisation générale
-INITIAL_CHANNEL = 69
-INITIAL_GROUP = 42
-DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
-
-IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
-
-radio.on()
-radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
 def get_id() -> int:
     """
@@ -155,7 +144,7 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
         while button_a.is_pressed() or button_b.is_pressed():
             pass
 
-# initialisation de l'ID et du rôle            
+# initialisation de l'ID et du rôle
 if not DEV_BYPASS_GET_ID:
     ID = get_id()
 else:
@@ -174,6 +163,7 @@ ROLE = get_role()
 if ROLE == "E":
     # initialisation de la m:b Enfant
     class Enfant:
+        """Classe contenant les methodes et attributs de la m:b Enfant"""
         def __init__(self) -> None:
             self.eveil = 0
 
@@ -186,12 +176,12 @@ if ROLE == "E":
 elif ROLE == "P":
     # initialisation de la m:b Parent
     class Parent:
+        """Classe contenant les methodes et attributs de la m:b Parent"""
         def __init__(self) -> None:
             self.quantite_de_lait = 0
             self.index_menu = 0
-            self.imagecompAct = "00000:""00000:""00000:""00000:""00000"
-        
-        def menu(self) -> None:
+
+        def menu(self):
             """permet de choisir le mode"""
             # l'idéal serait d'utiliser un dictionnaire
             # Pour l'instant il y a 4 modes: A,B,C,D (pour les tests)
@@ -200,17 +190,17 @@ elif ROLE == "P":
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             display.clear()
             sleep(500)
-            
+
             while True:
                 if self.index_menu == 0:
                     display.show("L") # Lait
                 elif self.index_menu == 1:
                     display.show("S") # Statut
                 elif self.index_menu == 2:
-                    display.show("M") # Température
+                    display.show("T") # Température
                 elif self.index_menu == 3:
-                    display.show("D")
-                
+                    display.show("R") # Recherche
+
                 if button_a.is_pressed() and button_b.is_pressed():
                     # pour sélectionner le mode il faut appuyer sur A et B en même temps
                     display.clear()
@@ -227,7 +217,9 @@ elif ROLE == "P":
                     if self.index_menu == 1:
                         self.mode_status()
                     if self.index_menu == 0:
-                        self.mode_compteur(self.imagecompAct)
+                        self.mode_compteur()
+                    if self.index_menu == 3:
+                        self.mode_recherche()
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -243,33 +235,39 @@ elif ROLE == "P":
                         if self.index_menu > 3:
                             self.index_menu = 0
 
-        def mode_compteur(self, struc) -> None:
+        def mode_compteur(self):
             """permet de compter la quantité de lait"""
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            imageLait = ImagePoint(struc)
-            
-            display.show(Image(self.imagecompAct))
+            imageLait = ImagePoint()
+
+            # moyen idéal est de tout gérer dans une seule fonction
+            for x in range(self.quantite_de_lait):
+                display.show(Image(imageLait.imageStruc))
+                imageLait.addPin()
+                sleep(20)
+
             while True:
-                
-                
+                display.show(Image(imageLait.imageStruc))
                 if button_b.is_pressed():
-                    sleep(300)
-                    imageLait.addPin()
                     display.show(Image(imageLait.imageStruc))
+                    imageLait.addPin()
+                    if self.quantite_de_lait < 25:
+                        self.quantite_de_lait += 1
+                    wait_for_button_up_not_cenceled("b")
 
                 if button_a.is_pressed():
-                    sleep(300)
-                    imageLait.removePin()
                     display.show(Image(imageLait.imageStruc))
-                
-                if pin_logo.is_touched():
-                    self.imagecompAct = imageLait.imageStruc
-                    print(self.imagecompAct)
-                    self.menu()
-                
-            
+                    imageLait.removePin()
+                    if self.quantite_de_lait > 0:
+                        self.quantite_de_lait -= 1
+                    wait_for_button_up_not_cenceled("a")
 
-        def mode_status(self) -> None:
+                if pin_logo.is_touched():
+                    self.menu()
+
+
+
+        def mode_status(self):
             """permet de voir l'état de l'Enfant"""
             # NOT DEBUGGED YET
             animation_counter = 0
@@ -287,13 +285,20 @@ elif ROLE == "P":
                     else:
                         display.show(IMAGE_SLEEP_SEQUENCE[1])
 
-#        def mode_recherche(self):
-#            """permet de trouver la m:b Enfant"""
-#            # A FAIRE (feature bonus)
-#            # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
-#            while not pin_logo.is_touched():
-#                force_signal = radio.receive_full()[1]
-#                print(force_signal)
-#            self.menu()
-#    
+        def mode_recherche(self):
+            """permet de trouver la m:b Enfant"""
+            # A FAIRE (feature bonus)
+            # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
+            while not pin_logo.is_touched():
+                if radio.receive_full():
+                    force_signal = radio.receive_full()
+                    print(force_signal)
+                # if force_signal > -50:
+                #     display.show("3")
+                # elif force_signal > -100:
+                #     display.show("2")
+                # else:
+                #     display.show("1")
+            self.menu()
+
     Parent().menu()
