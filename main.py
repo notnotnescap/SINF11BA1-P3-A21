@@ -300,5 +300,4 @@ elif ROLE == "P":
                 # else:
                 #     display.show("1")
             self.menu()
-
     Parent().menu()
