@@ -10,9 +10,11 @@ Note : Si `DEV_BYPASS_GET_ID` est `True` (Elle l'est par défaut) la m:b va bypa
 2. La m:b affiche "P" ou "E" selon le mode choisi pendent une seconde.
 
 ## Mode Enfant
+
 Si vous avez choisi le mode Enfant, rien ne se passera vu qu'il n'est pas encore implémenté. 😂
 
 ## Mode Parent
+
 Si vous avez choisi le mode Parent, vous accederez au menu parent que vous naviguez avec A et B. Appuiez sur A et B en même temps pour valider votre choix.
 
 Vous pouvez alors appuier sur le logo microbit pour revenir au menu parent.
@@ -47,17 +49,17 @@ Vous pouvez alors appuier sur le logo microbit pour revenir au menu parent.
 
 les messages sont formatés de manière T|L|C où T est le type de message, L est la longueur du message et C est le contenu du message. Voici une liste des types de messages :
 
-`IDa` *(ID ask)* - Demande d'ID\
-`IDc` *(ID confirm)* - Confirmation d'ID\
-`ROLEc` *(ROLE confirm)* - Confirmation de rôle\
-`STATUSa` *(STATUS ask)* - Demande de status\
-`STATUSr` *(STATUS response)* - Mise à jour sur le status de la m:b\
+`IDa` *(ID ask)* - Demande d'ID
+`IDc` *(ID confirm)* - Confirmation d'ID
+`ROLEc` *(ROLE confirm)* - Confirmation de rôle
+`STATUSa` *(STATUS ask)* - Demande de status
+`STATUSr` *(STATUS response)* - Mise à jour sur le status de la m:b
 `CMD` - Envoie d'une commande\
 
 Note : il faudrait peut-être repenser le format des messages pour qu'ils soient plus faciles à comprendre (c'est pas grave si ils sont plus longs)
 
-# Types de commendes
+# Types de commandes
 
-Note : Les commendes vont exclusivement de la m:b parent à la m:b enfant
+Note : Les commandes vont exclusivement de la m:b parent à la m:b enfant
 
 `START_SEARCH` - Début de la recherche d'une m:b enfant\
