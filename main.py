@@ -9,7 +9,7 @@ import radio
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
 DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
-MDP = "00900:00900:00900:00900:00900"
+MDP = "09999:00900:00000:00000:00000"
 # pour tout ce qui est image il faut les initialiser après le choix du role pour utiliser moins de mémoire
 
 # initialisation de la radio
@@ -21,6 +21,7 @@ class ImageMdp():
         self.StrucMdpActu = "90000:00000:00000:00000:00000"
         self.StrucMdpFin = MDP
         self.imageMdp = Image(self.StrucMdpActu)
+        self.placedPinMdp = "00000:00000:00000:00000:00000"
     
     def checkEntry(self) -> bool:
         if self.StrucMdpFin == self.StrucMdpActu:
@@ -41,43 +42,48 @@ class ImageMdp():
     def changePosition(self, dir:str):
         for i in range(len(self.StrucMdpActu)):
             if self.StrucMdpActu[i] == "9":
-                print(i)
                 if dir == "r":
                     if i == 28:
                         self.StrucMdpActu = "00000:00000:00000:00000:00009"
-                        print(self.StrucMdpActu)
                         return True
                     
                     elif self.StrucMdpActu[i+1] == ":":
                         self.StrucMdpActu = self.StrucMdpActu[:i] + "0:" + "9" + self.StrucMdpActu[i+3:]
-                        print(self.StrucMdpActu)
                         return True
                     
                     else:
                         self.StrucMdpActu = self.StrucMdpActu[:i] + "0" + "9" + self.StrucMdpActu[i+2:]
-                        print(self.StrucMdpActu)
                         return True
 
                 elif dir == "l":
                     if self.StrucMdpActu[i-1] == ":":
                         self.StrucMdpActu = self.StrucMdpActu[:i-2] + "9:" + "0" + self.StrucMdpActu[i+1:]
-                        print(self.StrucMdpActu)
                         return True
                     else:
                         if self.StrucMdpActu[i-2] == ":":
                             self.StrucMdpActu = self.StrucMdpActu[:i-2] + ":9" + "0" + self.StrucMdpActu[i+1:]
                         elif i == 1:
                             self.StrucMdpActu = "90000:00000:00000:00000:00000"
-                            print(self.StrucMdpActu)
                             return True
                         elif i == 0:
                             self.StrucMdpActu = "90000:00000:00000:00000:00000"
-                            print(self.StrucMdpActu)
                             return True
                         else:
                             self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
-                        print(self.StrucMdpActu)
                         return True
+                    
+    def placePinMdp(self):
+        for i in range(len(self.StrucMdpActu)):
+            if self.StrucMdpActu[i] == "9":
+                self.placedPinMdp = self.placedPinMdp[:i-1] + "9" + self.placedPinMdp[i+1:]
+                return True
+            
+    def showImagePinPlaced(self):
+        display.show(Image(self.placedPinMdp))
+        sleep(3000)
+    
+
+
 
 
 def get_id() -> int:
@@ -159,6 +165,7 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
             pass
 
 def check_mdp():
+    count = 0
     imageMdp = ImageMdp()
     while True:
         display.show(Image(imageMdp.StrucMdpActu))
@@ -168,9 +175,19 @@ def check_mdp():
         if button_a.is_pressed():
             imageMdp.changePosition(dir="l")
             wait_for_button_up_not_cenceled("a")
-        check = imageMdp.checkEntry()
-        if check:
-            return True
+        if button_a.is_pressed() and button_b.is_pressed():
+            count += 1
+            sleep(1000)
+            imageMdp.placePinMdp()
+        if count == 4:
+            check = imageMdp.checkEntry()
+            if check:
+                imageMdp.showImagePinPlaced()
+                return True
+            else:
+                imageMdp.showImagePinPlaced()
+                display.scroll("Mauvais Mot de Passe, recommencer")
+                count == 0
 
 def send_message(message: str) -> None:
     """
@@ -237,7 +254,6 @@ elif ROLE == "P":
             if n > 28:
                 pass
             else:
-                print("OUI") # on peut retirer ?
                 self.imageStruc = self.imageStruc[:n] + "9" + self.imageStruc[n + 1:]
             self.image = Image(self.imageStruc)
             print("[INFO] STRUCTURE IMAGE", self.imageStruc)
@@ -245,7 +261,6 @@ elif ROLE == "P":
         def removePin(self) -> None:
             """Retire un point à la représentation visuelle de la quantité de lait"""
             n = self.checkStruc()
-            print(n)
             if n > 28:
                 self.imageStruc = "99999:""99999:""99999:""99999:""99990"
             elif n == 0:
@@ -391,3 +406,4 @@ else:
     sleep(1000)
     # si le rôle n'est pas "P" ou "E", il y a une erreur de rôle
     display.scroll("ROLE ERROR")
+
