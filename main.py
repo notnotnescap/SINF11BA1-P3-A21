@@ -245,7 +245,7 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            check_mdp()
+            # check_mdp()
             display.clear()
             sleep(500)
 
@@ -257,7 +257,7 @@ elif ROLE == "P":
                 elif self.index_menu == 2:
                     display.show("T") # Température
                 elif self.index_menu == 3:
-                    display.show("R") # Recherche
+                    display.show("F") # Find my baby
 
                 if button_a.is_pressed() and button_b.is_pressed():
                     # pour sélectionner le mode il faut appuyer sur A et B en même temps
@@ -277,7 +277,7 @@ elif ROLE == "P":
                     if self.index_menu == 0:
                         self.mode_compteur()
                     if self.index_menu == 3:
-                        self.mode_recherche()
+                        self.mode_find()
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -312,8 +312,6 @@ elif ROLE == "P":
             print(self.image_lait)
             print(self.quantite_de_lait)
 
-
-
         def mode_compteur(self):
             """permet de compter la quantité de lait"""
             display.show(Image(self.image_lait))
@@ -338,7 +336,6 @@ elif ROLE == "P":
                         self.remove_lait()
                         wait_for_button_up_not_cenceled("b")
 
-
         def mode_status(self):
             """permet de voir l'état de l'Enfant"""
 
@@ -357,7 +354,7 @@ elif ROLE == "P":
                     else:
                         display.show(IMAGE_SLEEP_SEQUENCE[1])
 
-        def mode_recherche(self):
+        def mode_find(self):
             """permet de trouver la m:b Enfant"""
             # A FAIRE (feature bonus)
             # l'idée va être de faire un jeu de chaud/froid en utilisant la force du signal radio (c'est possible)
@@ -367,9 +364,9 @@ elif ROLE == "P":
                 if force_signal:
                     force_signal = force_signal[1]
                     print(force_signal)
-                    if force_signal > -50:
+                    if force_signal < -70:
                         display.show("3")
-                    elif force_signal > -100:
+                    elif force_signal < -50:
                         display.show("2")
                     else:
                         display.show("1")
