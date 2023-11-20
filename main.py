@@ -110,8 +110,7 @@ def get_id() -> int:
                 print("ID: 1")
                 return 1
 
-    # confirmation (A FAIRE) parce que oui, il existen encore un micro possibilité que les deux micro:bit envoient en même temps le message "ID|1|1"
-    # en vrai j'ai refais des tests et ça arrive pas mais bon, on sait jamais
+    # confirmation (A FAIRE)
 
 def check_connection() -> bool:
     """
@@ -208,7 +207,7 @@ else:
 # debug - - - - - - - (affiche l'ID de la m:b si il y en a deux)
 if not DEV_BYPASS_GET_ID:
     display.show(str(ID))
-    sleep(1000)
+    sleep(500)
     display.clear()
 
 # début du programme
@@ -237,6 +236,10 @@ elif ROLE == "P":
             self.quantite_de_lait = 0
             self.image_lait = "00000:00000:00000:00000:00000"
             self.index_menu = 0
+            self.menu_items = [("L", self.mode_compteur), # Lait
+                               ("S", self.mode_status), # Status
+                               ("T", self.mode_temperature), # Temperature
+                               ("F", self.mode_find)] # Find
 
         def menu(self):
             """permet de choisir le mode"""
@@ -247,17 +250,10 @@ elif ROLE == "P":
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
             check_mdp()
             display.clear()
-            sleep(500)
+            sleep(100)
 
             while True:
-                if self.index_menu == 0:
-                    display.show("L") # Lait
-                elif self.index_menu == 1:
-                    display.show("S") # Statut
-                elif self.index_menu == 2:
-                    display.show("T") # Température
-                elif self.index_menu == 3:
-                    display.show("F") # Find my baby
+                display.show(self.menu_items[self.index_menu][0])
 
                 if button_a.is_pressed() and button_b.is_pressed():
                     # pour sélectionner le mode il faut appuyer sur A et B en même temps
@@ -271,13 +267,8 @@ elif ROLE == "P":
 
                     # self.mode_compteur()
                     display.clear()
-                    sleep(500)
-                    if self.index_menu == 1:
-                        self.mode_status()
-                    if self.index_menu == 0:
-                        self.mode_compteur()
-                    if self.index_menu == 3:
-                        self.mode_find()
+                    sleep(100)
+                    self.menu_items[self.index_menu][1]()
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
@@ -315,7 +306,7 @@ elif ROLE == "P":
         def mode_compteur(self):
             """permet de compter la quantité de lait"""
             display.show(Image(self.image_lait))
-
+            wait_for_button_up_not_cenceled("ab")
             while True:
                 if pin_logo.is_touched():
                     self.menu()
@@ -353,6 +344,11 @@ elif ROLE == "P":
                         display.show(IMAGE_SLEEP_SEQUENCE[2])
                     else:
                         display.show(IMAGE_SLEEP_SEQUENCE[1])
+
+        def mode_temperature(self):
+            while not pin_logo.is_touched():
+                display.show("x")
+            self.menu()
 
         def mode_find(self):
             """permet de trouver la m:b Enfant"""
