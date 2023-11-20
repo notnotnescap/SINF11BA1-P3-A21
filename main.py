@@ -245,7 +245,7 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            # check_mdp()
+            check_mdp()
             display.clear()
             sleep(500)
 
