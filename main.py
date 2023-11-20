@@ -17,6 +17,7 @@ radio.on()
 radio.config(channel=INITIAL_CHANNEL, group=INITIAL_GROUP)
 
 class ImageMdp():
+    """Classe permettant de gérer une représentation visuelle du mot de passe sur l'écran de la m:b Parent"""
     def __init__(self) -> None:
         self.StrucMdpActu = "90000:00000:00000:00000:00000"
         self.StrucMdpFin = MDP
@@ -24,22 +25,25 @@ class ImageMdp():
         self.placedPinMdp = "00000:00000:00000:00000:00000"
     
     def checkEntry(self) -> bool:
+        """Vérifie si le mot de passe entré est correct"""
         if self.StrucMdpFin == self.StrucMdpActu:
             return True
         else:
             return False
         
     def changeImage(self, index:int, dir) -> None:
+        """Change l'image du mot de passe"""
         n = 0
         if index in [5, 11, 17, 23]:
             return False
-        for i in range(self.StrucMdpActu):
+        for _ in range(self.StrucMdpActu):
             if n == index and self.StrucMdpActu[index] == "0":
                 self.StrucMdpActu = self.StrucMdpActu[:index-1] + "9" + self.StrucMdpActu[index+1:]
             if n == index and self.StrucMdpActu[index] == "9":
                 self.StrucMdpActu = self.StrucMdpActu[:index-1] + "0" + self.StrucMdpActu[index+1:]
     
     def changePosition(self, dir:str):
+        """Change la position du curseur"""
         for i in range(len(self.StrucMdpActu)):
             if self.StrucMdpActu[i] == "9":
                 if dir == "r":
@@ -93,7 +97,7 @@ def get_id() -> int:
     La microbit commence par demander si elle peut être la m:b 1. Puis, elle écoute si elle reçoit une réponse.
     Si elle reçoit la première le message d'une autre micro:bit, elle devient la m:b 2 et envoie une réponse autaurisant l'autre m:b à devenir la m:b 1.
     """
-    display.show(Image("00000:""00000:""90909:""00000:""00000"))
+    display.show(Image("00000:00000:90909:00000:00000"))
     send_message("IDa|1|1") # est ce que je peux etre la m:b 1?
     while True:
         message = radio.receive()
@@ -102,11 +106,11 @@ def get_id() -> int:
                 send_message("IDc|1|2") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
                 return 2
-            elif message == "IDc|1|2": # oui, tu peux! je vais etre la m:b 2 alors!
+            if message == "IDc|1|2": # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 1")
                 return 1
 
-    # confirmation (A FAIRE) parce que oui, il existen encore un micro possibilité que les deux micro:bit envoient en même temps le message "ID|1|1" 
+    # confirmation (A FAIRE) parce que oui, il existen encore un micro possibilité que les deux micro:bit envoient en même temps le message "ID|1|1"
     # en vrai j'ai refais des tests et ça arrive pas mais bon, on sait jamais
 
 def check_connection() -> bool:
@@ -116,8 +120,7 @@ def check_connection() -> bool:
     La m:b 1 commence par envoyer un message pour demander si la m:b 2 est toujours là.
     La m:b 2 répond seulement si elle reçoit le message de la m:b 1.
     """
-    # A FAIRE
-    pass
+    # A FAIRE (peut etre)
 
 def get_role() -> str:
     """
@@ -226,57 +229,13 @@ if ROLE == "E":
 
 elif ROLE == "P":
     # initialisation de la m:b Parent
-    IMAGE_SLEEP_SEQUENCE = [Image("00000:""00000:""99099:""00000:""09990"),Image("00000:""99990:""00900:""09000:""99990"), Image("09999:""00090:""00900:""09999:""00000")]
-    
-    class ImageCompteurLait():
-        """Classe permettant de gérer une représentation visuelle de la quantité de lait sur l'écran de la m:b Parent"""
-        def __init__(self) -> None:
-            self.imageStruc = "00000:""00000:""00000:""00000:""00000"
-            self.image = Image(self.imageStruc)
-
-        def showImage(self):
-            """Retourne l'image de la quantité de lait"""
-            return Image(self.imageStruc)
-
-        def checkStruc(self):
-            """Retourne l'index du premier 0 dans la structure de l'image"""
-            n = 0
-            for i in self.imageStruc:
-                if str(i).isdigit():
-                    if i == "0":
-                        return n
-                n+=1
-            return n
-        
-        def addPin(self) -> None:
-            """Ajoute un point à la représentation visuelle de la quantité de lait"""
-            n = self.checkStruc()
-            if n > 28:
-                pass
-            else:
-                self.imageStruc = self.imageStruc[:n] + "9" + self.imageStruc[n + 1:]
-            self.image = Image(self.imageStruc)
-            print("[INFO] STRUCTURE IMAGE", self.imageStruc)
-
-        def removePin(self) -> None:
-            """Retire un point à la représentation visuelle de la quantité de lait"""
-            n = self.checkStruc()
-            if n > 28:
-                self.imageStruc = "99999:""99999:""99999:""99999:""99990"
-            elif n == 0:
-                pass
-            else:
-                if n in [6, 12, 18, 24]:
-                    self.imageStruc = self.imageStruc[:n-2] + "0:" + self.imageStruc[n:]
-                else:
-                    self.imageStruc = self.imageStruc[:n-1] + "0" + self.imageStruc[n:]
-            self.image = Image(self.imageStruc)
-            print("[INFO] STRUCTURE IMAGE", self.imageStruc)
+    IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),Image("00000:99990:00900:09000:99990"), Image("09999:00090:00900:09999:00000")]
 
     class Parent:
         """Classe contenant les methodes et attributs de la m:b Parent"""
         def __init__(self) -> None:
             self.quantite_de_lait = 0
+            self.image_lait = "00000:00000:00000:00000:00000"
             self.index_menu = 0
 
         def menu(self):
@@ -286,7 +245,7 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            check_mdp()
+            # check_mdp()
             display.clear()
             sleep(500)
 
@@ -322,8 +281,6 @@ elif ROLE == "P":
 
                 elif button_a.is_pressed():
                     if wait_for_button_up_not_cenceled("a"):
-                        # cette fonction attend juste que le bouton soit relaché et s'assure qu'on a pas essayé d'appuyer sur A et B en même temps
-                        # sinon il faut timer parfaitement l'appui sur les deux boutons et c'est horrible
                         self.index_menu -= 1
                         if self.index_menu < 0:
                             self.index_menu = 3 # ici dans le futur il faudra mettre la longueur du dictionnaire du menu
@@ -334,35 +291,53 @@ elif ROLE == "P":
                         if self.index_menu > 3:
                             self.index_menu = 0
 
+        def add_lait(self) -> None:
+            """Ajoute 1 unité de lait"""
+            self.image_lait = self.image_lait.replace("9", "0", 1)
+            display.show(Image(self.image_lait))
+            if self.quantite_de_lait > 0:
+                self.quantite_de_lait -= 1
+            print(self.image_lait)
+            print(self.quantite_de_lait)
+
+        def remove_lait(self) -> None:
+            """Retire 1 unité de lait"""
+            last_zero_index = self.image_lait.rfind("0")
+            if last_zero_index != -1:
+                self.image_lait = self.image_lait[:last_zero_index] + "9" + self.image_lait[last_zero_index+1:]
+            display.show(Image(self.image_lait))
+            if self.quantite_de_lait < 25:
+                self.quantite_de_lait += 1
+            print(self.quantite_de_lait)
+            print(self.image_lait)
+            print(self.quantite_de_lait)
+
+
+
         def mode_compteur(self):
             """permet de compter la quantité de lait"""
-            # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            imageLait = ImageCompteurLait()
-
-            # moyen idéal est de tout gérer dans une seule fonction
-            for x in range(self.quantite_de_lait):
-                display.show(Image(imageLait.imageStruc))
-                imageLait.addPin()
-                sleep(20)
+            display.show(Image(self.image_lait))
 
             while True:
-                display.show(Image(imageLait.imageStruc))
-                if button_b.is_pressed():
-                    display.show(Image(imageLait.imageStruc))
-                    imageLait.addPin()
-                    if self.quantite_de_lait < 25:
-                        self.quantite_de_lait += 1
-                    wait_for_button_up_not_cenceled("b")
-
-                if button_a.is_pressed():
-                    display.show(Image(imageLait.imageStruc))
-                    imageLait.removePin()
-                    if self.quantite_de_lait > 0:
-                        self.quantite_de_lait -= 1
-                    wait_for_button_up_not_cenceled("a")
-
                 if pin_logo.is_touched():
                     self.menu()
+                if button_a.is_pressed() and button_b.is_pressed():
+                    display.scroll(str(self.quantite_de_lait))
+                    display.show(Image(self.image_lait))
+                    sleep(1000)
+                    if button_a.is_pressed() and button_b.is_pressed():
+                        self.image_lait = "00000:00000:00000:00000:00000"
+                        self.quantite_de_lait = 0
+                        display.show(Image(self.image_lait))
+                elif button_a.is_pressed():
+                    if wait_for_button_up_not_cenceled("a"):
+                        self.add_lait()
+                        wait_for_button_up_not_cenceled("a")
+                elif button_b.is_pressed():
+                    if wait_for_button_up_not_cenceled("b"):
+                        self.remove_lait()
+                        wait_for_button_up_not_cenceled("b")
+
 
         def mode_status(self):
             """permet de voir l'état de l'Enfant"""
