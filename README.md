@@ -49,12 +49,12 @@ Vous pouvez alors appuier sur le logo microbit pour revenir au menu parent.
 
 les messages sont formatés de manière T|L|C où T est le type de message, L est la longueur du message et C est le contenu du message. Voici une liste des types de messages :
 
-`IDa` *(ID ask)* - Demande d'ID
-`IDc` *(ID confirm)* - Confirmation d'ID
-`ROLEc` *(ROLE confirm)* - Confirmation de rôle
-`STATUSa` *(STATUS ask)* - Demande de status
-`STATUSr` *(STATUS response)* - Mise à jour sur le status de la m:b
-`CMD` - Envoie d'une commande\
+`IDa` *(ID ask)* - Demande d'ID\
+`IDc` *(ID confirm)* - Confirmation d'ID\
+`ROLEc` *(ROLE confirm)* - Confirmation de rôle\
+`STATUSa` *(STATUS ask)* - Demande de status\
+`STATUSr` *(STATUS response)* - Mise à jour sur le status de la m:b\
+`CMD` - Envoie d'une commande
 
 Note : il faudrait peut-être repenser le format des messages pour qu'ils soient plus faciles à comprendre (c'est pas grave si ils sont plus longs)
 
