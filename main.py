@@ -248,7 +248,7 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            check_mdp()
+            # check_mdp()
             display.clear()
             sleep(100)
 
@@ -360,12 +360,26 @@ elif ROLE == "P":
                 if force_signal:
                     force_signal = force_signal[1]
                     print(force_signal)
-                    if force_signal < -70:
+                    if force_signal < -120:
+                        display.show("9")
+                    elif force_signal < -110:
+                        display.show("8")
+                    elif force_signal < -100:
+                        display.show("7")
+                    elif force_signal < -90:
+                        display.show("6")
+                    elif force_signal < -80:
+                        display.show("5")
+                    elif force_signal < -70:
+                        display.show("4")
+                    elif force_signal < -60:
                         display.show("3")
                     elif force_signal < -50:
                         display.show("2")
-                    else:
+                    elif force_signal < -40:
                         display.show("1")
+                    else:
+                        display.show("0")
             self.menu()
     Parent().menu()
 
