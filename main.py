@@ -42,42 +42,41 @@ class ImageMdp():
 
     def change_position(self, dir:str):
         """Change la position du curseur"""
-        for i in range(len(self.StrucMdpActu)):
-            if self.StrucMdpActu[i] == "9":
+        for i, digit in enumerate(self.StrucMdpActu):
+            if digit == "9":
                 if dir == "r":
                     if i == 28:
                         self.StrucMdpActu = "00000:00000:00000:00000:00009"
                         return True
-                    
-                    elif self.StrucMdpActu[i+1] == ":":
+
+                    if self.StrucMdpActu[i+1] == ":":
                         self.StrucMdpActu = self.StrucMdpActu[:i] + "0:" + "9" + self.StrucMdpActu[i+3:]
                         return True
-                    
-                    else:
-                        self.StrucMdpActu = self.StrucMdpActu[:i] + "0" + "9" + self.StrucMdpActu[i+2:]
-                        return True
 
-                elif dir == "l":
+                    self.StrucMdpActu = self.StrucMdpActu[:i] + "0" + "9" + self.StrucMdpActu[i+2:]
+                    return True
+
+                if dir == "l":
                     if self.StrucMdpActu[i-1] == ":":
                         self.StrucMdpActu = self.StrucMdpActu[:i-2] + "9:" + "0" + self.StrucMdpActu[i+1:]
                         return True
-                    else:
-                        if self.StrucMdpActu[i-2] == ":":
-                            self.StrucMdpActu = self.StrucMdpActu[:i-2] + ":9" + "0" + self.StrucMdpActu[i+1:]
-                        elif i == 1:
-                            self.StrucMdpActu = "90000:00000:00000:00000:00000"
-                            return True
-                        elif i == 0:
-                            self.StrucMdpActu = "90000:00000:00000:00000:00000"
-                            return True
-                        else:
-                            self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
+
+                    if self.StrucMdpActu[i-2] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + ":9" + "0" + self.StrucMdpActu[i+1:]
+                    elif i == 1:
+                        self.StrucMdpActu = "90000:00000:00000:00000:00000"
                         return True
+                    elif i == 0:
+                        self.StrucMdpActu = "90000:00000:00000:00000:00000"
+                        return True
+                    else:
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
+                    return True
 
     def place_pin_mdp(self):
         """Place un pin dans le mot de passe"""
-        for i in range(len(self.StrucMdpActu)):
-            if self.StrucMdpActu[i] == "9":
+        for i, digit in enumerate(self.StrucMdpActu):
+            if digit == "9":
                 self.placedPinMdp = self.placedPinMdp[:i-1] + "9" + self.placedPinMdp[i+1:]
                 return True
 
@@ -167,6 +166,7 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
             pass
 
 def check_mdp():
+    """Vérifie si le mot de passe entré est correct"""
     count = 0
     imageMdp = ImageMdp()
     while True:
@@ -186,10 +186,10 @@ def check_mdp():
             if check:
                 imageMdp.show_image_pin_placed()
                 return True
-            else:
-                imageMdp.show_image_pin_placed()
-                display.scroll("Mauvais Mot de Passe, recommencer")
-                count == 0
+
+            imageMdp.show_image_pin_placed()
+            display.scroll("Mauvais Mot de Passe, recommencer")
+            count = 0 # c'était count == 0 avant
 
 def send_message(message: str) -> None:
     """
@@ -378,4 +378,3 @@ else:
     sleep(1000)
     # si le rôle n'est pas "P" ou "E", il y a une erreur de rôle
     display.scroll("ROLE ERROR")
-
