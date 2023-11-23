@@ -304,7 +304,7 @@ class Image():
             Optionally buffer can be an array of width``×``height integers in range 0-9 to 
             initialize the image:
             Image(2, 2, bytearray([9,9,9,9])) """
-    def __init__(self) -> None:
+    def __init__(self, *args) -> None:
         pass
     
     def width():

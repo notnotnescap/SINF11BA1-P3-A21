@@ -23,15 +23,13 @@ class ImageMdp():
         self.StrucMdpFin = MDP
         self.imageMdp = Image(self.StrucMdpActu)
         self.placedPinMdp = "00000:00000:00000:00000:00000"
-    
-    def checkEntry(self) -> bool:
+
+    def check_entry(self) -> bool:
         """Vérifie si le mot de passe entré est correct"""
-        if self.StrucMdpFin == self.StrucMdpActu:
-            return True
-        else:
-            return False
-        
-    def changeImage(self, index:int, dir) -> None:
+        return self.StrucMdpFin == self.StrucMdpActu
+
+
+    def change_image(self, index:int, dir) -> None:
         """Change l'image du mot de passe"""
         n = 0
         if index in [5, 11, 17, 23]:
@@ -41,8 +39,8 @@ class ImageMdp():
                 self.StrucMdpActu = self.StrucMdpActu[:index-1] + "9" + self.StrucMdpActu[index+1:]
             if n == index and self.StrucMdpActu[index] == "9":
                 self.StrucMdpActu = self.StrucMdpActu[:index-1] + "0" + self.StrucMdpActu[index+1:]
-    
-    def changePosition(self, dir:str):
+
+    def change_position(self, dir:str):
         """Change la position du curseur"""
         for i in range(len(self.StrucMdpActu)):
             if self.StrucMdpActu[i] == "9":
@@ -75,17 +73,19 @@ class ImageMdp():
                         else:
                             self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
                         return True
-                    
-    def placePinMdp(self):
+
+    def place_pin_mdp(self):
+        """Place un pin dans le mot de passe"""
         for i in range(len(self.StrucMdpActu)):
             if self.StrucMdpActu[i] == "9":
                 self.placedPinMdp = self.placedPinMdp[:i-1] + "9" + self.placedPinMdp[i+1:]
                 return True
-            
-    def showImagePinPlaced(self):
+
+    def show_image_pin_placed(self):
+        """Affiche l'image du mot de passe avec le pin placé"""
         display.show(Image(self.placedPinMdp))
         sleep(3000)
-    
+
 
 
 
@@ -172,22 +172,22 @@ def check_mdp():
     while True:
         display.show(Image(imageMdp.StrucMdpActu))
         if button_b.is_pressed():
-            imageMdp.changePosition(dir="r")
+            imageMdp.change_position(dir="r")
             wait_for_button_up_not_cenceled("b")
         if button_a.is_pressed():
-            imageMdp.changePosition(dir="l")
+            imageMdp.change_position(dir="l")
             wait_for_button_up_not_cenceled("a")
         if button_a.is_pressed() and button_b.is_pressed():
             count += 1
             sleep(1000)
-            imageMdp.placePinMdp()
+            imageMdp.place_pin_mdp()
         if count == 4:
-            check = imageMdp.checkEntry()
+            check = imageMdp.check_entry()
             if check:
-                imageMdp.showImagePinPlaced()
+                imageMdp.show_image_pin_placed()
                 return True
             else:
-                imageMdp.showImagePinPlaced()
+                imageMdp.show_image_pin_placed()
                 display.scroll("Mauvais Mot de Passe, recommencer")
                 count == 0
 
