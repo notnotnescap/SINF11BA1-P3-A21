@@ -360,26 +360,16 @@ elif ROLE == "P":
                 if force_signal:
                     force_signal = force_signal[1]
                     print(force_signal)
+
                     if force_signal < -120:
                         display.show("9")
-                    elif force_signal < -110:
-                        display.show("8")
-                    elif force_signal < -100:
-                        display.show("7")
-                    elif force_signal < -90:
-                        display.show("6")
-                    elif force_signal < -80:
-                        display.show("5")
-                    elif force_signal < -70:
-                        display.show("4")
-                    elif force_signal < -60:
-                        display.show("3")
-                    elif force_signal < -50:
-                        display.show("2")
-                    elif force_signal < -40:
-                        display.show("1")
-                    else:
+                    elif force_signal > -40:
                         display.show("0")
+                    else:
+                        display.show(abs(force_signal)//10-2)
+                else:
+                    display.show("?")
+
             self.menu()
     Parent().menu()
 
