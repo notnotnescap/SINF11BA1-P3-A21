@@ -1,9 +1,40 @@
 """
 P3-SINF11BA1-A21
-"""
 
-from microbit import *
+Johannes Edvard Radesey (nescapp sur Github) - 07042301
+-> ... (à compléter)
+-> ... (à compléter)
+-> ... (à compléter)
+"""
+# Basics
+
+from microbit import button_a
+from microbit import button_b
+from microbit import pin_logo
+from microbit import sleep
+from microbit import display
+from microbit import Image
+# from microbit import accelerometer
+# from microbit import compass
+
+# from microbit import i2c
+# from microbit import microphone
+# from microbit import power
+# from microbit import speaker
+# from microbit import spi
+# from microbit import uart
+
+# Extended
+
+# import audio
+# import machine
+# import music
+# import neopixel
+# import os
 import radio
+# import random
+# import speech
+
 
 # initialisation générale
 INITIAL_CHANNEL = 69
@@ -367,8 +398,6 @@ elif ROLE == "P":
                         display.show("0")
                     else:
                         display.show(abs(force_signal)//10-2)
-                else:
-                    display.show("?")
 
             self.menu()
     Parent().menu()
