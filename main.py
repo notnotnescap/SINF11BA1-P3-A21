@@ -121,7 +121,7 @@ class ImageMdp():
                         self.placedPinMdp = self.placedPinMdp[0:i-1] + ":9" + self.placedPinMdp[i+1:]
                     else:
                         self.placedPinMdp = self.placedPinMdp[0:i] + "9" + self.placedPinMdp[i+1:]
-                print(i, "bite")
+                print(i, "index")
                 print(self.placedPinMdp)
                 return True
 
@@ -262,6 +262,7 @@ if not DEV_BYPASS_GET_ID:
 ROLE = get_role()
 
 if ROLE == "E":
+    check_mdp()
     # initialisation de la m:b Enfant
     class Enfant:
         """Classe contenant les methodes et attributs de la m:b Enfant"""
@@ -276,7 +277,7 @@ if ROLE == "E":
 elif ROLE == "P":
     # initialisation de la m:b Parent
     IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),Image("00000:99990:00900:09000:99990"), Image("09999:00090:00900:09999:00000")]
-
+    check_mdp()
     class Parent:
         """Classe contenant les methodes et attributs de la m:b Parent"""
         def __init__(self) -> None:
@@ -295,7 +296,6 @@ elif ROLE == "P":
             # ils auront des noms plus tard
 
             # le pin_logo agit comme un bouton d'accueil (pour revenir au menu)
-            # check_mdp()
             display.clear()
             sleep(100)
 
