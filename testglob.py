@@ -1,5 +1,2 @@
-def p():
-    print("hey")
-
-test = [1,2,p]
-test[2]()
+for i in range(15):
+    print(i)
