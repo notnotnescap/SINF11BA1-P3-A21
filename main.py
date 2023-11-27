@@ -2,7 +2,7 @@
 P3-SINF11BA1-A21
 
 Johannes Edvard Radesey (nescapp sur Github) - 07042301
--> ... (à compléter)
+-> Arthur Backes (arthur backes sur Github) - 13512301
 -> ... (à compléter)
 -> ... (à compléter)
 """
@@ -40,7 +40,7 @@ import radio
 INITIAL_CHANNEL = 69
 INITIAL_GROUP = 42
 DEV_BYPASS_GET_ID = True # True pour faire des tests avec qu'une seule m:b
-MDP = "09999:00900:00000:00000:00000"
+MDP = "09999:00000:00000:00000:00000"
 # pour tout ce qui est image il faut les initialiser après le choix du role pour utiliser moins de mémoire
 
 # initialisation de la radio
@@ -57,7 +57,11 @@ class ImageMdp():
 
     def check_entry(self) -> bool:
         """Vérifie si le mot de passe entré est correct"""
-        return self.StrucMdpFin == self.StrucMdpActu
+        rep = False
+        if self.StrucMdpFin == self.placedPinMdp:
+            rep = True
+        self.placedPinMdp = "00000:00000:00000:00000:00000"
+        return rep
 
 
     def change_image(self, index:int, dir) -> None:
@@ -108,12 +112,23 @@ class ImageMdp():
         """Place un pin dans le mot de passe"""
         for i, digit in enumerate(self.StrucMdpActu):
             if digit == "9":
-                self.placedPinMdp = self.placedPinMdp[:i-1] + "9" + self.placedPinMdp[i+1:]
+                if i == 0:
+                    self.placedPinMdp = "9" + self.placedPinMdp[1:]
+                elif i == 29:
+                    self.placedPinMdp = self.placedPinMdp[0:-1] + "9"
+                else:
+                    if self.placedPinMdp[i-1] == ":":
+                        self.placedPinMdp = self.placedPinMdp[0:i-1] + ":9" + self.placedPinMdp[i+1:]
+                    else:
+                        self.placedPinMdp = self.placedPinMdp[0:i] + "9" + self.placedPinMdp[i+1:]
+                print(i, "bite")
+                print(self.placedPinMdp)
                 return True
 
     def show_image_pin_placed(self):
         """Affiche l'image du mot de passe avec le pin placé"""
         display.show(Image(self.placedPinMdp))
+        print(self.placedPinMdp)
         sleep(3000)
 
 
@@ -208,7 +223,7 @@ def check_mdp():
         if button_a.is_pressed():
             imageMdp.change_position(dir="l")
             wait_for_button_up_not_cenceled("a")
-        if button_a.is_pressed() and button_b.is_pressed():
+        if pin_logo.is_touched():
             count += 1
             sleep(1000)
             imageMdp.place_pin_mdp()
@@ -219,7 +234,8 @@ def check_mdp():
                 return True
 
             imageMdp.show_image_pin_placed()
-            display.scroll("Mauvais Mot de Passe, recommencer")
+            display.show("X")
+            sleep(2000)
             count = 0 # c'était count == 0 avant
 
 def send_message(message: str) -> None:
