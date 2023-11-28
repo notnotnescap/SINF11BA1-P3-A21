@@ -8,47 +8,64 @@ Johannes Edvard Radesey (nescapp sur Github) - 07042301
 """
 # Basics
 
-# from microbit import button_a
-# from microbit import button_b
-# from microbit import pin_logo
-# from microbit import sleep
-# from microbit import display
-# from microbit import Image
-# # from microbit import accelerometer
-# # from microbit import compass
+from microbit import button_a
+from microbit import button_b
+from microbit import pin_logo
+from microbit import sleep
+from microbit import display
+from microbit import Image
+# from microbit import accelerometer
+# from microbit import compass
 
-# # from microbit import i2c
-# # from microbit import microphone
-# # from microbit import power
-# # from microbit import speaker
-# # from microbit import spi
-# # from microbit import uart
+# from microbit import i2c
+# from microbit import microphone
+# from microbit import power
+# from microbit import speaker
+# from microbit import spi
+# from microbit import uart
 
-# # Extended
+# Extended
 
-# # import audio
-# # import machine
-# # import music
-# # import neopixel
-# # import os
-# import radio
-# # import random
-# # import speech
+# import audio
+# import machine
+# import music
+# import neopixel
+# import os
+import radio
+# import random
+# import speech
+
+BYPASS_GET_ID = False
 
 class Device:
     def __init__(self, initial_channel, initial_group) -> None:
-        self.channel = initial_channel
-        self.group = initial_group
-        # radio.on()
-        # radio.config(channel=self.channel, group=self.group)
+        self.__channel = initial_channel
+        self.__group = initial_group
+        self.set_key("kJg3ogEGePTKxPZnPByntA6SyYkSpLf2s7jDfy3v")
 
-    def change_channel(self, new_channel):
-        self.channel = new_channel
-        radio.config(channel=self.channel)
+        if not BYPASS_GET_ID:
+            self.id = self.get_id()
+        else:
+            self.id = 0
 
-    def change_group(self, new_group):
-        self.group = new_group
-        radio.config(group=self.group)
+        if not BYPASS_GET_ID:
+            display.show(str(self.id))
+            sleep(500)
+            display.clear()
+
+        radio.on()
+        radio.config(channel=self.__channel, group=self.__group)
+
+    def set_channel(self, new_channel:int) -> None:
+        self.__channel = new_channel
+        radio.config(channel=self.__channel)
+
+    def set_group(self, new_group:int) -> None:
+        self.__group = new_group
+        radio.config(group=self.__group)
+
+    def set_key(self, new_key:str) -> None:
+        self.__key = self.hashing(new_key)
 
     def hashing(self, string):
         """
@@ -139,6 +156,8 @@ class Device:
                 (int)length:           Longueur de la donnée en caractères
                 (str) message:         Données reçue
         """
+        if not encrypted_packet:
+            return None
         data = self.vigenere(encrypted_packet, key, True).split("|")
         try:
             type = data[0]
@@ -152,33 +171,17 @@ class Device:
             print(f"Mauvais packet reçu : {data}")
             return None, None, None
 
-    def receive_packet(self, packet_received, key):
-        """
-        Traite les paquets reçus via l'interface radio du micro:bit
-        Cette fonction utilise la fonction unpack_data pour renvoyer les différents champs du message passé en paramètre
-        Si une erreur survient, les 3 champs sont retournés vides
-
-        :param (str) packet_received: Paquet reçue
-            (str) key:              Clé de chiffrement
-        :return (srt)type:             Type de paquet
-                (int)lenght:           Longueur de la donnée en caractère
-                (str) message:         Données reçue
-        """
-        type, lenght, message = self.unpack_data(packet_received, key)
-        return None
-    
-
     def get_id(self):
         display.show(Image("00000:00000:90909:00000:00000"))
-        self.send_packet("DEFAULT", "ID", "ASK") # est ce que je peux etre la m:b 1?
+        self.send_packet(self.__key, "ID", "ASK") # est ce que je peux etre la m:b 1?
         while True:
-            message = radio.receive()
+            message = self.unpack_data(radio.receive(), self.__key)
             if message:
-                if message == "IDa|1|1": #est ce que je peux etre la m:b 1?
-                    self.send_packet("IDc|1|2") # oui, tu peux! je vais etre la m:b 2 alors!
+                if message[0] == "ID" and message[1] == "ASK": #est ce que je peux etre la m:b 1?
+                    self.send_packet(self.__key, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
                     print("ID: 2")
                     return 2
-                if message == "IDc|1|2": # oui, tu peux! je vais etre la m:b 2 alors!
+                if message[0] == "ID" and message[1] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
                     print("ID: 1")
                     return 1
 
@@ -188,7 +191,10 @@ class Parent(Device):
 
 class Child(Device):
     def __init__(self) -> None:
-        pass
+        self.statut = 0
 
-test = Device(1,1)
-print(test.unpack_data("LH|8|LLN", "DEFAULT"))
+    def main():
+        self.send_packet(self.__key, "STATUT", self.statut)
+
+this_device = Device(69, 42)
+this_device.get_id()
