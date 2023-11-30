@@ -115,19 +115,19 @@ class _Button():
     def __init__(self) -> None:
         pass
 
-    def is_pressed():
+    def is_pressed(self, *args):
         """ Returns True if the specified button button is currently being held down, 
         and False otherwise. """
         pass
 
-    def was_pressed():
+    def was_pressed(self, *args):
         """ Returns True or False to indicate if the button was pressed (went from up to down) 
         since the device started or the last time this method was called. Calling this 
         method will clear the press state so that the button must be pressed again before 
         this method will return True again. """
         pass
 
-    def get_presses():
+    def get_presses(self, *args):
         """ Returns the running total of button presses, and resets this total 
         to zero before returning. """
         pass

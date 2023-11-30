@@ -136,5 +136,7 @@ def respond_to_connexion_request(key):
 	:return (srt) challenge_response:   Réponse au challenge
     """
 
-print(vigenere("ID|3|ASK", "DEFAULT"))
-print(vigenere("LH|8|LLN", "DEFAULT", True))
+print(vigenere("quelquechose", "mdp"))
+# print(vigenere("idzdzpwlcgbz", "mdp", True))
+
+print(hashing("abc"))

@@ -36,18 +36,18 @@ import radio
 # import speech
 
 BYPASS_GET_ID = True
-defaultkey = "test"
 
 def get_id() -> int:
+    ID_KEY = "ID"
     display.show(Image("00000:00000:90909:00000:00000"))
-    send_packet(defaultkey, "ID", "ASK") # est ce que je peux etre la m:b 1?
+    send_packet(ID_KEY, "ID", "ASK") # est ce que je peux etre la m:b 1?
     while True:
-        # message = d.unpack_data(radio.receive(), d.key)
+        # message = d.unpack_data(radio.receive(), ID_KEY)
         message = radio.receive()
         if message:
             # if message[0] == "ID" and message[1] == "ASK": #est ce que je peux etre la m:b 1?
             if message == "ASK":
-                send_packet(defaultkey, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
+                send_packet(ID_KEY, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
                 return 2
             # if message[0] == "ID" and message[1] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
@@ -55,27 +55,133 @@ def get_id() -> int:
                 print("ID: 1")
                 return 1
 
-def get_role(d:'Device') -> str:
+def get_role() -> str:
     """
     La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte.
     """
+    ROLE_KEY = "ROLE"
     display.show("?")
     while True:
         message = radio.receive()
         if button_a.is_pressed() or message == "E":
-            send_packet(d.key, "ROLE", "E")
+            send_packet(ROLE_KEY, "ROLE", "E")
             display.show("P")
             sleep(1000)
             display.clear()
             print("Parent")
             return "P"
         if button_b.is_pressed() or message == "P":
-            send_packet(d.key, "ROLE", "P")
+            send_packet(ROLE_KEY, "ROLE", "P")
             display.show("E")
             sleep(1000)
             display.clear()
             print("Child")
             return "E"
+
+# def hashing(string):
+#     """
+#     Hachage d'une chaîne de caractères fournie en paramètre.
+#     Le résultat est une chaîne de caractères.
+#     Attention : cette technique de hachage n'est pas suffisante (hachage dit cryptographique) pour une utilisation en dehors du cours.
+
+#     :param (str) string: la chaîne de caractères à hacher
+#     :return (str): le résultat du hachage
+#     """
+#     def to_32(value):
+#         """
+#         Fonction interne utilisée par hashing.
+#         Convertit une valeur en un entier signé de 32 bits.
+#         Si 'value' est un entier plus grand que 2 ** 31, il sera tronqué.
+
+#         :param (int) value: valeur du caractère transformé par la valeur de hachage de cette itération
+#         :return (int): entier signé de 32 bits représentant 'value'
+#         """
+#         value = value % (2 ** 32)
+#         if value >= 2**31:
+#             value = value - 2 ** 32
+#         value = int(value)
+#         return value
+
+#     if string:
+#         x = ord(string[0]) << 7
+#         m = 1000003
+#         for c in string:
+#             x = to_32((x*m) ^ ord(c))
+#         x ^= len(string)
+#         if x == -1:
+#             x = -2
+#         return str(x)
+#     return ""
+
+# def vigenere(message:str, key:str, decryption:bool=False):
+#     text = ""
+#     key_length = len(key)
+#     key_as_int = [ord(k) for k in key]
+
+#     for i, char in enumerate(str(message)):
+#         #Letters encryption/decryption
+#         if char.isalpha():
+#             key_index = i % key_length
+#             if decryption:
+#                 modified_char = chr((ord(char.upper()) - key_as_int[key_index] + 26) % 26 + ord('A'))
+#             else : 
+#                 modified_char = chr((ord(char.upper()) + key_as_int[key_index] - 26) % 26 + ord('A'))
+#             #Put back in lower case if it was
+#             if char.islower():
+#                 modified_char = modified_char.lower()
+#             text += modified_char
+#         #Digits encryption/decryption
+#         elif char.isdigit():
+#             key_index = i % key_length
+#             if decryption:
+#                 modified_char = str((int(char) - key_as_int[key_index]) % 10)
+#             else:  
+#                 modified_char = str((int(char) + key_as_int[key_index]) % 10)
+#             text += modified_char
+#         else:
+#             text += char
+#     return text
+
+def send_packet(key:str, type:str, content:str):
+    """
+    Envoi de données fournies en paramètres
+    Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
+
+    :param (str) key:       Clé de chiffrement
+        (str) type:      Type du paquet à envoyer
+        (str) content:   Données à envoyer
+    :return none
+    """
+    # message = f"{type}|{len(content)}|{content}"
+    # message = self.vigenere(message, key)
+    # radio.send(message)
+    radio.send(content)
+
+# def unpack_data(encrypted_packet:str, key:str):
+#     """
+#     Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
+#     Cette fonction renvoit les différents champs du message passé en paramètre
+
+#     :param (str) encrypted_packet: Paquet reçu
+#         (str) key:              Clé de chiffrement
+#     :return (srt)type:             Type de paquet
+#             (int)length:           Longueur de la donnée en caractères
+#             (str) message:         Données reçue
+#     """
+#     if not encrypted_packet:
+#         return None
+#     data = self.vigenere(encrypted_packet, key, True).split("|")
+#     try:
+#         type = data[0]
+#         try:
+#             lenght = int(data[1])
+#         except ValueError:
+#             lenght = None
+#         message = data[2]
+#         return type, lenght, message
+#     except IndexError:
+#         print(f"Mauvais packet reçu : {data}")
+#         return None, None, None
 
 def wait_for_button_up_not_cenceled(button: str) -> bool:
     """
@@ -98,49 +204,6 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
         while button_a.is_pressed() or button_b.is_pressed():
             pass
 
-def vigenere(message:str, key:str, decryption:bool=False):
-    text = ""
-    key_length = len(key)
-    key_as_int = [ord(k) for k in key]
-
-    for i, char in enumerate(str(message)):
-        #Letters encryption/decryption
-        if char.isalpha():
-            key_index = i % key_length
-            if decryption:
-                modified_char = chr((ord(char.upper()) - key_as_int[key_index] + 26) % 26 + ord('A'))
-            else : 
-                modified_char = chr((ord(char.upper()) + key_as_int[key_index] - 26) % 26 + ord('A'))
-            #Put back in lower case if it was
-            if char.islower():
-                modified_char = modified_char.lower()
-            text += modified_char
-        #Digits encryption/decryption
-        elif char.isdigit():
-            key_index = i % key_length
-            if decryption:
-                modified_char = str((int(char) - key_as_int[key_index]) % 10)
-            else:  
-                modified_char = str((int(char) + key_as_int[key_index]) % 10)
-            text += modified_char
-        else:
-            text += char
-    return text
-
-def send_packet(key:str, t:str, content:str):
-    """
-    Envoi de données fournies en paramètres
-    Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
-
-    :param (str) key:       Clé de chiffrement
-        (str) type:      Type du paquet à envoyer
-        (str) content:   Données à envoyer
-    :return none
-    """
-    message = "{}|{}|{}".format(t, str(len(content)), content)
-    message = vigenere(message, key)
-    radio.send(message)
-
 class Device:
     def __init__(self) -> None:
         self.channel = 69
@@ -148,10 +211,13 @@ class Device:
         self.key = "test"
         self.id = 0
 
-        if not BYPASS_GET_ID:
-            display.show(str(self.id))
-            sleep(500)
-            display.clear()
+        # if not BYPASS_GET_ID:
+        #     display.show(str(self.id))
+        #     sleep(500)
+        #     display.clear()
+        display.show(str(self.id))
+        sleep(500)
+        display.clear()
 
         radio.on()
         radio.config(channel=self.channel, group=self.group)
@@ -159,68 +225,7 @@ class Device:
     # def set_key(self, new_key:str) -> None:
     #     self.key = self.hashing(new_key)
 
-    # def hashing(self, string):
-    #     """
-    #     Hachage d'une chaîne de caractères fournie en paramètre.
-    #     Le résultat est une chaîne de caractères.
-    #     Attention : cette technique de hachage n'est pas suffisante (hachage dit cryptographique) pour une utilisation en dehors du cours.
 
-    #     :param (str) string: la chaîne de caractères à hacher
-    #     :return (str): le résultat du hachage
-    #     """
-    #     def to_32(value):
-    #         """
-    #         Fonction interne utilisée par hashing.
-    #         Convertit une valeur en un entier signé de 32 bits.
-    #         Si 'value' est un entier plus grand que 2 ** 31, il sera tronqué.
-
-    #         :param (int) value: valeur du caractère transformé par la valeur de hachage de cette itération
-    #         :return (int): entier signé de 32 bits représentant 'value'
-    #         """
-    #         value = value % (2 ** 32)
-    #         if value >= 2**31:
-    #             value = value - 2 ** 32
-    #         value = int(value)
-    #         return value
-
-    #     if string:
-    #         x = ord(string[0]) << 7
-    #         m = 1000003
-    #         for c in string:
-    #             x = to_32((x*m) ^ ord(c))
-    #         x ^= len(string)
-    #         if x == -1:
-    #             x = -2
-    #         return str(x)
-    #     return ""
-
-
-
-    # def unpack_data(self, encrypted_packet:str, key:str):
-    #     """
-    #     Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
-    #     Cette fonction renvoit les différents champs du message passé en paramètre
-
-    #     :param (str) encrypted_packet: Paquet reçu
-    #         (str) key:              Clé de chiffrement
-    #     :return (srt)type:             Type de paquet
-    #             (int)length:           Longueur de la donnée en caractères
-    #             (str) message:         Données reçue
-    #     """
-    #     if not encrypted_packet:
-    #         return None
-    #     data = self.vigenere(encrypted_packet, key, True).split("|")
-    #     try:
-    #         type = data[0]
-    #         try:
-    #             lenght = int(data[1])
-    #         except ValueError:
-    #             lenght = None
-    #         message = data[2]
-    #         return type, lenght, message
-    #     except IndexError:
-    #         print(f"Mauvais packet reçu : {data}")
-    #         return None, None, None
 
 class Parent(Device):
     def __init__(self) -> None:
@@ -252,13 +257,13 @@ class Parent(Device):
                 self.menu_items[self.index_menu][1]()
 
             elif button_a.is_pressed():
-                if wait_for_button_up_not_cenceled("a"):
+                if self.wait_for_button_up_not_cenceled("a"):
                     self.index_menu -= 1
                     if self.index_menu < 0:
                         self.index_menu = 3 # ici dans le futur il faudra mettre la longueur du dictionnaire du menu
 
             elif button_b.is_pressed():
-                if wait_for_button_up_not_cenceled("b"):
+                if self.wait_for_button_up_not_cenceled("b"):
                     self.index_menu += 1
                     if self.index_menu > 3:
                         self.index_menu = 0
@@ -287,7 +292,7 @@ class Parent(Device):
     def mode_compteur(self):
         """permet de compter la quantité de lait"""
         display.show(Image(self.image_lait))
-        wait_for_button_up_not_cenceled("ab")
+        self.wait_for_button_up_not_cenceled("ab")
         while True:
             if pin_logo.is_touched():
                 self.menu()
@@ -300,13 +305,13 @@ class Parent(Device):
                     self.quantite_de_lait = 0
                     display.show(Image(self.image_lait))
             elif button_a.is_pressed():
-                if wait_for_button_up_not_cenceled("a"):
+                if self.wait_for_button_up_not_cenceled("a"):
                     self.add_lait()
-                    wait_for_button_up_not_cenceled("a")
+                    self.wait_for_button_up_not_cenceled("a")
             elif button_b.is_pressed():
-                if wait_for_button_up_not_cenceled("b"):
+                if self.wait_for_button_up_not_cenceled("b"):
                     self.remove_lait()
-                    wait_for_button_up_not_cenceled("b")
+                    self.wait_for_button_up_not_cenceled("b")
 
     def mode_status(self):
         """permet de voir l'état de l'Enfant"""
@@ -356,20 +361,19 @@ class Child(Device):
 
     def main(self):
         while True:
-            send_packet(self.key, "STATUT", self.statut)
+            self.send_packet(self.key, "STATUT", self.statut)
             sleep(1000)
 
 
-device = Device()
 if not BYPASS_GET_ID:
     ID = get_id()
 else:
     ID = 0
-device.id = ID
 # get_role(device)
 
 
-if get_role(device) == "P":
+if get_role() == "P":
     device = Parent()
 else:
     device = Child()
+device.id = ID
