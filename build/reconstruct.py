@@ -38,20 +38,24 @@ import radio
 BYPASS_GET_ID = True
 defaultkey = "test"
 
+radio.on()
+radio.config(channel=69, group=42)
+
 def get_id() -> int:
     display.show(Image("00000:00000:90909:00000:00000"))
     send_packet(defaultkey, "ID", "ASK") # est ce que je peux etre la m:b 1?
     while True:
-        # message = d.unpack_data(radio.receive(), d.key)
-        message = radio.receive()
+        message = unpack_data(radio.receive(), defaultkey)
+        print(message)
+        # message = radio.receive()
         if message:
-            # if message[0] == "ID" and message[1] == "ASK": #est ce que je peux etre la m:b 1?
-            if message == "ASK":
+            if message[0] == "ID" and message[2] == "ASK": #est ce que je peux etre la m:b 1?
+            # if message == "ASK":
                 send_packet(defaultkey, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
                 return 2
-            # if message[0] == "ID" and message[1] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
-            if message == "CONF":
+            if message[0] == "ID" and message[2] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
+            # if message == "CONF":
                 print("ID: 1")
                 return 1
 
@@ -127,6 +131,32 @@ def vigenere(message:str, key:str, decryption:bool=False):
             text += char
     return text
 
+def unpack_data(encrypted_packet:str, key:str):
+    """
+    Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
+    Cette fonction renvoit les différents champs du message passé en paramètre
+
+    :param (str) encrypted_packet: Paquet reçu
+        (str) key:              Clé de chiffrement
+    :return (srt)type:             Type de paquet
+            (int)length:           Longueur de la donnée en caractères
+            (str) message:         Données reçue
+    """
+    if not encrypted_packet:
+        return None
+    data = vigenere(encrypted_packet, key, True).split("|")
+    try:
+        t = data[0]
+        try:
+            lenght = int(data[1])
+        except ValueError:
+            lenght = None
+        message = data[2]
+        return t, lenght, message
+    except IndexError:
+        print("Mauvais packet reçu : {}".format(data))
+        return None, None, None
+
 def send_packet(key:str, t:str, content:str):
     """
     Envoi de données fournies en paramètres
@@ -143,8 +173,8 @@ def send_packet(key:str, t:str, content:str):
 
 class Device:
     def __init__(self) -> None:
-        self.channel = 69
-        self.group = 42
+        # self.channel = 69
+        # self.group = 42
         self.key = "test"
         self.id = 0
 
@@ -153,8 +183,7 @@ class Device:
             sleep(500)
             display.clear()
 
-        radio.on()
-        radio.config(channel=self.channel, group=self.group)
+
 
     # def set_key(self, new_key:str) -> None:
     #     self.key = self.hashing(new_key)
@@ -193,34 +222,6 @@ class Device:
     #             x = -2
     #         return str(x)
     #     return ""
-
-
-
-    # def unpack_data(self, encrypted_packet:str, key:str):
-    #     """
-    #     Déballe et déchiffre les paquets reçus via l'interface radio du micro:bit
-    #     Cette fonction renvoit les différents champs du message passé en paramètre
-
-    #     :param (str) encrypted_packet: Paquet reçu
-    #         (str) key:              Clé de chiffrement
-    #     :return (srt)type:             Type de paquet
-    #             (int)length:           Longueur de la donnée en caractères
-    #             (str) message:         Données reçue
-    #     """
-    #     if not encrypted_packet:
-    #         return None
-    #     data = self.vigenere(encrypted_packet, key, True).split("|")
-    #     try:
-    #         type = data[0]
-    #         try:
-    #             lenght = int(data[1])
-    #         except ValueError:
-    #             lenght = None
-    #         message = data[2]
-    #         return type, lenght, message
-    #     except IndexError:
-    #         print(f"Mauvais packet reçu : {data}")
-    #         return None, None, None
 
 class Parent(Device):
     def __init__(self) -> None:

@@ -1,46 +1,48 @@
-# le code entier se trouve dans build/raw.py
-Z='00000:00000:00000:00000:00000'
-Y='test'
-U='0'
-T='9'
-S=False
-Q='b'
-P='a'
+b='00000:00000:00000:00000:00000'
+a='test'
+W='0'
+V='9'
+U=int
+R='b'
+Q='a'
+P=False
 M='P'
 L=ord
 J=str
 F=True
-D=print
-from microbit import button_a as B,button_b as C,pin_logo as N,sleep as G,display as A,Image as E
+B=print
+from microbit import button_a as C,button_b as D,pin_logo as N,sleep as G,display as A,Image as E
 import radio as H
-V=F
-W=Y
-def a():
-	G='CONF';C='ASK';A.show(E('00000:00000:90909:00000:00000'));K(W,'ID',C)
+X=P
+S=a
+H.on()
+H.config(channel=69,group=42)
+def c():
+	I='CONF';G='ASK';D='ID';A.show(E('00000:00000:90909:00000:00000'));K(S,D,G)
 	while F:
-		B=H.receive()
-		if B:
-			if B==C:K(W,'ID',G);D('ID: 2');return 2
-			if B==G:D('ID: 1');return 1
-def b(d):
+		C=e(H.receive(),S);B(C)
+		if C:
+			if C[0]==D and C[2]==G:K(S,D,I);B('ID: 2');return 2
+			if C[0]==D and C[2]==I:B('ID: 1');return 1
+def d(d):
 	J='ROLE';E='E';A.show('?')
 	while F:
 		I=H.receive()
-		if B.is_pressed()or I==E:K(d.key,J,E);A.show(M);G(1000);A.clear();D('Parent');return M
-		if C.is_pressed()or I==M:K(d.key,J,M);A.show(E);G(1000);A.clear();D('Child');return E
+		if C.is_pressed()or I==E:K(d.key,J,E);A.show(M);G(1000);A.clear();B('Parent');return M
+		if D.is_pressed()or I==M:K(d.key,J,M);A.show(E);G(1000);A.clear();B('Child');return E
 def I(button):
 	A=button
-	if A.lower()==P:
-		while B.is_pressed()and not C.is_pressed():0
-		if C.is_pressed():return S
-		return F
 	if A.lower()==Q:
-		while C.is_pressed()and not B.is_pressed():0
-		if B.is_pressed():return S
+		while C.is_pressed()and not D.is_pressed():0
+		if D.is_pressed():return P
+		return F
+	if A.lower()==R:
+		while D.is_pressed()and not C.is_pressed():0
+		if C.is_pressed():return P
 		return F
 	if A.lower()=='ab':
-		while B.is_pressed()or C.is_pressed():0
-def c(message,key,decryption=S):
+		while C.is_pressed()or D.is_pressed():0
+def Y(message,key,decryption=P):
 	F=decryption;D='';G=len(key);E=[L(A)for A in key]
 	for(H,A)in enumerate(J(message)):
 		if A.isalpha():
@@ -51,53 +53,62 @@ def c(message,key,decryption=S):
 			D+=B
 		elif A.isdigit():
 			C=H%G
-			if F:B=J((int(A)-E[C])%10)
-			else:B=J((int(A)+E[C])%10)
+			if F:B=J((U(A)-E[C])%10)
+			else:B=J((U(A)+E[C])%10)
 			D+=B
 		else:D+=A
 	return D
-def K(key,t,content):B=content;A='{}|{}|{}'.format(t,J(len(B)),B);A=c(A,key);H.send(A)
-class R:
+def e(encrypted_packet,key):
+	D=encrypted_packet;C=None
+	if not D:return
+	A=Y(D,key,F).split('|')
+	try:
+		G=A[0]
+		try:E=U(A[1])
+		except ValueError:E=C
+		H=A[2];return G,E,H
+	except IndexError:B('Mauvais packet reçu : {}'.format(A));return C,C,C
+def K(key,t,content):B=content;A='{}|{}|{}'.format(t,J(len(B)),B);A=Y(A,key);H.send(A)
+class T:
 	def __init__(B):
-		B.channel=69;B.group=42;B.key=Y;B.id=0
-		if not V:A.show(J(B.id));G(500);A.clear()
-		H.on();H.config(channel=B.channel,group=B.group)
-class d(R):
-	def __init__(B):A.show('i');super().__init__();B.quantite_de_lait=0;B.image_lait=Z;B.index_menu=0;B.menu_items=[('L',B.mode_compteur),('S',B.mode_status),('T',B.mode_temperature),('F',B.mode_find)];B.IMAGE_SLEEP_SEQUENCE=[E('00000:00000:99099:00000:09990'),E('00000:99990:00900:09000:99990'),E('09999:00090:00900:09999:00000')];B.menu()
-	def menu(D):
+		B.key=a;B.id=0
+		if not X:A.show(J(B.id));G(500);A.clear()
+class f(T):
+	def __init__(B):A.show('i');super().__init__();B.quantite_de_lait=0;B.image_lait=b;B.index_menu=0;B.menu_items=[('L',B.mode_compteur),('S',B.mode_status),('T',B.mode_temperature),('F',B.mode_find)];B.IMAGE_SLEEP_SEQUENCE=[E('00000:00000:99099:00000:09990'),E('00000:99990:00900:09000:99990'),E('09999:00090:00900:09999:00000')];B.menu()
+	def menu(B):
 		A.clear();G(100)
 		while F:
-			A.show(D.menu_items[D.index_menu][0])
-			if B.is_pressed()and C.is_pressed():A.clear();G(100);D.menu_items[D.index_menu][1]()
-			elif B.is_pressed():
-				if I(P):
-					D.index_menu-=1
-					if D.index_menu<0:D.index_menu=3
+			A.show(B.menu_items[B.index_menu][0])
+			if C.is_pressed()and D.is_pressed():A.clear();G(100);B.menu_items[B.index_menu][1]()
 			elif C.is_pressed():
 				if I(Q):
-					D.index_menu+=1
-					if D.index_menu>3:D.index_menu=0
-	def add_lait(B):
-		B.image_lait=B.image_lait.replace(T,U,1);A.show(E(B.image_lait))
-		if B.quantite_de_lait>0:B.quantite_de_lait-=1
-		D(B.image_lait);D(B.quantite_de_lait)
-	def remove_lait(B):
-		C=B.image_lait.rfind(U)
-		if C!=-1:B.image_lait=B.image_lait[:C]+T+B.image_lait[C+1:]
-		A.show(E(B.image_lait))
-		if B.quantite_de_lait<25:B.quantite_de_lait+=1
-		D(B.quantite_de_lait);D(B.image_lait);D(B.quantite_de_lait)
-	def mode_compteur(D):
-		A.show(E(D.image_lait));I('ab')
+					B.index_menu-=1
+					if B.index_menu<0:B.index_menu=3
+			elif D.is_pressed():
+				if I(R):
+					B.index_menu+=1
+					if B.index_menu>3:B.index_menu=0
+	def add_lait(C):
+		C.image_lait=C.image_lait.replace(V,W,1);A.show(E(C.image_lait))
+		if C.quantite_de_lait>0:C.quantite_de_lait-=1
+		B(C.image_lait);B(C.quantite_de_lait)
+	def remove_lait(C):
+		D=C.image_lait.rfind(W)
+		if D!=-1:C.image_lait=C.image_lait[:D]+V+C.image_lait[D+1:]
+		A.show(E(C.image_lait))
+		if C.quantite_de_lait<25:C.quantite_de_lait+=1
+		B(C.quantite_de_lait);B(C.image_lait);B(C.quantite_de_lait)
+	def mode_compteur(B):
+		A.show(E(B.image_lait));I('ab')
 		while F:
-			if N.is_touched():D.menu()
-			if B.is_pressed()and C.is_pressed():
-				A.scroll(J(D.quantite_de_lait));A.show(E(D.image_lait));G(1000)
-				if B.is_pressed()and C.is_pressed():D.image_lait=Z;D.quantite_de_lait=0;A.show(E(D.image_lait))
-			elif B.is_pressed():
-				if I(P):D.add_lait();I(P)
+			if N.is_touched():B.menu()
+			if C.is_pressed()and D.is_pressed():
+				A.scroll(J(B.quantite_de_lait));A.show(E(B.image_lait));G(1000)
+				if C.is_pressed()and D.is_pressed():B.image_lait=b;B.quantite_de_lait=0;A.show(E(B.image_lait))
 			elif C.is_pressed():
-				if I(Q):D.remove_lait();I(Q)
+				if I(Q):B.add_lait();I(Q)
+			elif D.is_pressed():
+				if I(R):B.remove_lait();I(R)
 	def mode_status(B):
 		C=0;A.show(B.IMAGE_SLEEP_SEQUENCE[1])
 		while F:
@@ -111,22 +122,22 @@ class d(R):
 	def mode_temperature(B):
 		while not N.is_touched():A.show('x')
 		B.menu()
-	def mode_find(C):
+	def mode_find(D):
 		while not N.is_touched():
-			B=H.receive_full()
-			if B:
-				B=B[1];D(B)
-				if B<-120:A.show(T)
-				elif B>-40:A.show(U)
-				else:A.show(abs(B)//10-2)
-		C.menu()
-class e(R):
+			C=H.receive_full()
+			if C:
+				C=C[1];B(C)
+				if C<-120:A.show(V)
+				elif C>-40:A.show(W)
+				else:A.show(abs(C)//10-2)
+		D.menu()
+class g(T):
 	def __init__(A):super().__init__();A.statut=0;A.main()
 	def main(A):
 		while F:K(A.key,'STATUT',A.statut);G(1000)
-O=R()
-if not V:X=a()
-else:X=0
-O.id=X
-if b(O)==M:O=d()
-else:O=e()
+O=T()
+if not X:Z=c()
+else:Z=0
+O.id=Z
+if d(O)==M:O=f()
+else:O=g()
