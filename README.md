@@ -4,62 +4,40 @@ Cette repo contient le code source du projet 3
 
 # Manuel d'utilisation de l'utilisateur
 
-Note : Si `DEV_BYPASS_GET_ID` est `True` (Elle l'est par défaut) la m:b va bypass la fonction `get_id()` vous permettant de tester le code sans avoir à utiliser deux m:bs.
+Note : Si `BYPASS_CONNECT` est `True` (Elle l'est par défaut), la m:b ne se connectera pas à une autre m:b et vous permettra de tester les fonctionnalités de la m:b sans avoir besoin d'une autre m:b.
 
-1. La m:b affiche "?", il faut alors appuier sur A pour le mode Parent ou B pour le mode Enfant. (Si une deuximème microbit est connectée, elle s'adaptera automatiquement)
-2. La m:b affiche "P" ou "E" selon le mode choisi pendent une seconde.
+1. (cette étape est sautée si `BYPASS_CONNECT` est `True`) Affiche ・・・ et attend qu'une autre m:b s'annonce, affiche l'id (1 ou 2) de la m:b, affiche ・・・ et attend l'établissement de la connexion secure. Finalement, affiche 'v' ou 'x' selon si la connexion secure est établie ou non.
+2. La m:b affiche "?", il faut alors appuier sur `A` pour le mode Parent ou `B` pour le mode Enfant. (Si une deuximème microbit est connectée, elle s'adaptera automatiquement) Finalement, la m:b affiche "P" ou "E" selon le mode choisi pendent une seconde.
 
 ## Mode Enfant
 
-Si vous avez choisi le mode Enfant, rien ne se passera vu qu'il n'est pas encore implémenté. 😂
+Le mode enfant n'est pas encore implémenté.
 
 ## Mode Parent
 
-Si vous avez choisi le mode Parent, vous accederez au menu parent que vous naviguez avec A et B. Appuiez sur A et B en même temps pour valider votre choix.
+Si vous avez choisi le mode Parent, vous accederez au menu parent que vous naviguez avec `A` et `B`. Appuiez sur A et B en même temps pour valider votre choix.
 
-Vous pouvez alors appuier sur le logo microbit pour revenir au menu parent.
+Dès que vous etes dans un des modes, vous pouvez appuier sur le logo microbit pour revenir au menu parent.
 
-### Mode 1 : Quantité de lait
+### Mode 'C' : Compteur de lait
 
-1. Appuyer sur les deux boutons (a et b) sur le microbit parents à l'affichage de la lettre L dans le menu global
-2. Pour ajouter une certaine quantité de lait, appuyez sur le boutons a. Chaque unité (un point lumineux), correspont à une valeur standart de 100mL de lait.
-3. Pour corriger et retirer une quantité de lait, appuyez sur le bouton b.
-4. Pour revenir en arrière il suffit d'appuyer sur le bouton tactile au-dessus du display
+- Pour ajouter une certaine quantité de lait, appuyez sur le bouton `B`. Chaque unité (un point lumineux), correspont à une valeur standart de 100mL de lait.
+- Pour retirer une quantité de lait, appuyez sur le bouton `A`.
+- Pour afficher la quantité de lait, appuyez sur les deux boutons `A` et `B` en même temps.
+- Pour réinitialiser la quantité de lait, restez appuyé sur les deux boutons `A` et `B` en même temps.
 
-### Mode 2 : Statut de l'enfant
+### Mode 'S' : Statut de l'enfant
 
-1. Appuyer sur les deux boutons (a et b) sur le microbit parents à l'affichage de la lettre S dans le menu global
-2. Une animation indique l'état de l'endant
+Affiche l'état de l'enfant.
 
-### Mode 3 : Température
-
-1. Appuyer sur les deux boutons (a et b) sur le microbit parents à l'affichage de la lettre T dans le menu global
+### Mode 'T : Température
 
 (pas encore implémenté)
 
-### Mode 4 : Recherche
+### Mode 'F' : Recherche
 
-1. Appuyer sur les deux boutons (a et b) sur le microbit parents à l'affichage de la lettre R dans le menu global
+Affiche un chiffre de 0 à 9 correspondant à la distance entre la m:b et la m:b enfant.
 
-(pas encore implémenté)
+# Manuel d'utilisation du développeur
 
-# Manuel développeur
-
-## Types de messages
-
-les messages sont formatés de manière T|L|C où T est le type de message, L est la longueur du message et C est le contenu du message. Voici une liste des types de messages :
-
-`IDa` *(ID ask)* - Demande d'ID\
-`IDc` *(ID confirm)* - Confirmation d'ID\
-`ROLEc` *(ROLE confirm)* - Confirmation de rôle\
-`STATUSa` *(STATUS ask)* - Demande de status\
-`STATUSr` *(STATUS response)* - Mise à jour sur le status de la m:b\
-`CMD` - Envoie d'une commande
-
-Note : il faudrait peut-être repenser le format des messages pour qu'ils soient plus faciles à comprendre (c'est pas grave si ils sont plus longs)
-
-# Types de commandes
-
-Note : Les commandes vont exclusivement de la m:b parent à la m:b enfant
-
-`START_SEARCH` - Début de la recherche d'une m:b enfant\
+Le code source se trouve dans `src/source.py`. Pour le minimifier, utilisez `src/minifier.py`. Le résutat est automatiquement écrit dans `main.py`. Les fichiers `ref_...` sont juste des fichiers de référence.

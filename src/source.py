@@ -30,36 +30,33 @@ from microbit import Image
 # import machine
 # import music
 # import neopixel
-# import os
+import sys
 import radio
-# import random
+import random
 # import speech
 
-BYPASS_GET_ID = True
-defaultkey = "test"
+BYPASS_CONNECT = True
+key = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
 radio.on()
 radio.config(channel=69, group=42)
 
 def get_id() -> int:
     display.show(Image("00000:00000:90909:00000:00000"))
-    send_packet(defaultkey, "ID", "ASK") # est ce que je peux etre la m:b 1?
+    send_packet(key, "ID", "ASK") # est ce que je peux etre la m:b 1?
     while True:
-        message = unpack_data(radio.receive(), defaultkey)
-        print(message)
-        # message = radio.receive()
+        message = unpack_data(radio.receive(), key)
         if message:
             if message[0] == "ID" and message[2] == "ASK": #est ce que je peux etre la m:b 1?
-            # if message == "ASK":
-                send_packet(defaultkey, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
+
+                send_packet(key, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
                 return 2
             if message[0] == "ID" and message[2] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
-            # if message == "CONF":
                 print("ID: 1")
                 return 1
 
-def get_role(d:'Device') -> str:
+def get_role() -> str:
     """
     La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte.
     """
@@ -67,19 +64,112 @@ def get_role(d:'Device') -> str:
     while True:
         message = radio.receive()
         if button_a.is_pressed() or message == "E":
-            send_packet(d.key, "ROLE", "E")
+            send_packet(key, "ROLE", "E")
             display.show("P")
             sleep(1000)
             display.clear()
             print("Parent")
             return "P"
         if button_b.is_pressed() or message == "P":
-            send_packet(d.key, "ROLE", "P")
+            send_packet(key, "ROLE", "P")
             display.show("E")
             sleep(1000)
             display.clear()
             print("Child")
             return "E"
+
+def hashing(string):
+    """
+    Hachage d'une chaîne de caractères fournie en paramètre.
+    Le résultat est une chaîne de caractères.
+    Attention : cette technique de hachage n'est pas suffisante (hachage dit cryptographique) pour une utilisation en dehors du cours.
+
+    :param (str) string: la chaîne de caractères à hacher
+    :return (str): le résultat du hachage
+    """
+    def to_32(value):
+        """
+        Fonction interne utilisée par hashing.
+        Convertit une valeur en un entier signé de 32 bits.
+        Si 'value' est un entier plus grand que 2 ** 31, il sera tronqué.
+
+        :param (int) value: valeur du caractère transformé par la valeur de hachage de cette itération
+        :return (int): entier signé de 32 bits représentant 'value'
+        """
+        value = value % (2 ** 32)
+        if value >= 2**31:
+            value = value - 2 ** 32
+        value = int(value)
+        return value
+
+    if string:
+        x = ord(string[0]) << 7
+        m = 1000003
+        for c in string:
+            x = to_32((x*m) ^ ord(c))
+        x ^= len(string)
+        if x == -1:
+            x = -2
+        return str(x)
+    return ""
+
+
+def establish_secure_connection():
+    global key
+    if ID == 1:
+        a = random.randint(0, 999999999)
+        print("a: {}".format(a))
+        send_packet(key, "SCE", a)
+        superhash_of_a = hashing(hashing(str(a)))
+        print("superhash_of_a: {}".format(superhash_of_a))
+        display.show(Image("00000:00000:90909:00000:00000"))
+        while True:
+            message = unpack_data(radio.receive(), key)
+            if message:
+                if message[0] == "SCE":
+                    if message[2] == superhash_of_a:
+                        key = key + hashing(str(a))
+
+                        # VERIFICATION A TESTER
+                        # sleep(500)
+                        # send_packet(defaultkey, "SCE", "CHECK")
+
+                        display.show(Image.YES)
+                        sleep(500)
+                        return
+                    display.show(Image.NO)
+                    sys.exit()
+
+    if ID == 2:
+        display.show(Image("00000:00000:90909:00000:00000"))
+        while True:
+            message = unpack_data(radio.receive(), key)
+            if message:
+                if message[0] == "SCE":
+                    break
+        a = int(message[2])
+        print("a: {}".format(a))
+        superhash_of_a = hashing(hashing(str(a)))
+        print("superhash_of_a: {}".format(superhash_of_a))
+        send_packet(key, "SCE", superhash_of_a)
+        key = key + hashing(str(a))
+
+        # Enlever ces deux lignes pour tester la vérification
+        display.show(Image.YES)
+        sleep(500)
+
+        # La vérification est importante pour éviter que l'autre mb ne sache pas que le test a échoué
+
+        # VERIFICATION A TESTER
+        # while True:
+        #     message = unpack_data(radio.receive(), defaultkey)
+        #     if message:
+        #         if message[0] == "SCE":
+        #             if message[2] == "CHECK":
+        #                 display.show(Image.YES)
+        #                 return
+        #             display.show(Image.NO)
+        #             sys.exit()
 
 def wait_for_button_up_not_cenceled(button: str) -> bool:
     """
@@ -167,70 +257,21 @@ def send_packet(key:str, t:str, content:str):
         (str) content:   Données à envoyer
     :return none
     """
-    message = "{}|{}|{}".format(t, str(len(content)), content)
+    message = "{}|{}|{}".format(t, str(len(str(content))), str(content))
     message = vigenere(message, key)
     radio.send(message)
 
 class Device:
-    def __init__(self) -> None:
-        # self.channel = 69
-        # self.group = 42
-        self.key = "test"
-        self.id = 0
-
-        if not BYPASS_GET_ID:
-            display.show(str(self.id))
-            sleep(500)
-            display.clear()
-
-
-
-    # def set_key(self, new_key:str) -> None:
-    #     self.key = self.hashing(new_key)
-
-    # def hashing(self, string):
-    #     """
-    #     Hachage d'une chaîne de caractères fournie en paramètre.
-    #     Le résultat est une chaîne de caractères.
-    #     Attention : cette technique de hachage n'est pas suffisante (hachage dit cryptographique) pour une utilisation en dehors du cours.
-
-    #     :param (str) string: la chaîne de caractères à hacher
-    #     :return (str): le résultat du hachage
-    #     """
-    #     def to_32(value):
-    #         """
-    #         Fonction interne utilisée par hashing.
-    #         Convertit une valeur en un entier signé de 32 bits.
-    #         Si 'value' est un entier plus grand que 2 ** 31, il sera tronqué.
-
-    #         :param (int) value: valeur du caractère transformé par la valeur de hachage de cette itération
-    #         :return (int): entier signé de 32 bits représentant 'value'
-    #         """
-    #         value = value % (2 ** 32)
-    #         if value >= 2**31:
-    #             value = value - 2 ** 32
-    #         value = int(value)
-    #         return value
-
-    #     if string:
-    #         x = ord(string[0]) << 7
-    #         m = 1000003
-    #         for c in string:
-    #             x = to_32((x*m) ^ ord(c))
-    #         x ^= len(string)
-    #         if x == -1:
-    #             x = -2
-    #         return str(x)
-    #     return ""
+    def __init__(self, id) -> None:
+        self.id = id
 
 class Parent(Device):
-    def __init__(self) -> None:
-        display.show("i")
-        super().__init__()
+    def __init__(self,id) -> None:
+        super().__init__(id)
         self.quantite_de_lait = 0
         self.image_lait = "00000:00000:00000:00000:00000"
         self.index_menu = 0
-        self.menu_items = [("L", self.mode_compteur), # Lait
+        self.menu_items = [("C", self.mode_compteur), # Compteur (quantité de lait)
                         ("S", self.mode_status), # Status
                         ("T", self.mode_temperature), # Temperature
                         ("F", self.mode_find)] # Find
@@ -350,27 +391,31 @@ class Parent(Device):
         self.menu()
 
 class Child(Device):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, id) -> None:
+        super().__init__(id)
         self.statut = 0
         self.main()
 
     def main(self):
         while True:
-            send_packet(self.key, "STATUT", self.statut)
+            send_packet(key, "STATUT", self.statut)
             sleep(1000)
 
 
-device = Device()
-if not BYPASS_GET_ID:
+# device = Device()
+if not BYPASS_CONNECT:
     ID = get_id()
+    display.show(str(ID))
+    sleep(500)
+    display.clear()
+    establish_secure_connection()
 else:
     ID = 0
-device.id = ID
-# get_role(device)
 
-
-if get_role(device) == "P":
-    device = Parent()
+ROLE = get_role()
+if ROLE == "P":
+    device = Parent(ID)
+elif ROLE == "E":
+    device = Child(ID)
 else:
-    device = Child()
+    display.scroll("ROLE ERROR")
