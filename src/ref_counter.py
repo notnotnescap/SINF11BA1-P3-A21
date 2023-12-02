@@ -13,10 +13,8 @@ def add():
     split = lvl.split(":")
     output = []
     done = False
-    # print(f"\033[94m{list(reversed(split))}\033[0m")
     for i in list(reversed(split)):
         if "0" in i and not done:
-            # lvl = lvl.replace("0", "9", 1)
             output.append(i.replace("0", "9", 1))
             if count < 25:
                 count += 1
@@ -38,8 +36,11 @@ def remove():
 
     for i in list(split):
         if "9" in i and not done:
-            # lvl = lvl.replace("9", "0", 1)
-            output.append(i[::-1].replace("9", "0", 1)[::-1])
+            # output.append(i[::-1].replace("9", "0", 1)[::-1])
+            # ri = list(reversed(i))
+            # output.append(list(reversed(ri[:ri.index("9")])) + ["0"] + list(reversed(ri[ri.index("9")+1:])))
+            last_9_index = i.rfind("9")
+            output.append(i[:last_9_index] + "0" + i[last_9_index+1:])
             if count > 0:
                 count -= 1
             done = True

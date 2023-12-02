@@ -307,24 +307,63 @@ class Parent(Device):
 
     def add_lait(self) -> None:
         """Ajoute 1 unité de lait"""
-        self.image_lait = self.image_lait.replace("9", "0", 1)
-        display.show(Image(self.image_lait))
-        if self.quantite_de_lait > 0:
-            self.quantite_de_lait -= 1
+        # self.image_lait = self.image_lait.replace("9", "0", 1)
+        # display.show(Image(self.image_lait))
+        # if self.quantite_de_lait > 0:
+        #     self.quantite_de_lait -= 1
+        # print(self.image_lait)
+        # print(self.quantite_de_lait)
+
+        split = self.image_lait.split(":")
+        output = []
+        done = False
+
+        for i in list(split):
+            if "9" in i and not done:
+                last_9_index = i.rfind("9")
+                output.append(i[:last_9_index] + "0" + i[last_9_index+1:])
+
+                if self.quantite_de_lait > 0:
+                    self.quantite_de_lait -= 1
+                done = True
+            else:
+                output.append(i)
+
+        self.image_lait = ":".join(list(output))
+
         print(self.image_lait)
         print(self.quantite_de_lait)
+        display.show(Image(self.image_lait))
 
     def remove_lait(self) -> None:
         """Retire 1 unité de lait"""
-        last_zero_index = self.image_lait.rfind("0")
-        if last_zero_index != -1:
-            self.image_lait = self.image_lait[:last_zero_index] + "9" + self.image_lait[last_zero_index+1:]
-        display.show(Image(self.image_lait))
-        if self.quantite_de_lait < 25:
-            self.quantite_de_lait += 1
-        print(self.quantite_de_lait)
+        # last_zero_index = self.image_lait.rfind("0")
+        # if last_zero_index != -1:
+        #     self.image_lait = self.image_lait[:last_zero_index] + "9" + self.image_lait[last_zero_index+1:]
+        # display.show(Image(self.image_lait))
+        # if self.quantite_de_lait < 25:
+        #     self.quantite_de_lait += 1
+        # print(self.quantite_de_lait)
+        # print(self.image_lait)
+        # print(self.quantite_de_lait)
+
+        split = self.image_lait.split(":")
+        output = []
+        done = False
+        for i in list(reversed(split)):
+            if "0" in i and not done:
+                output.append(i.replace("0", "9", 1))
+                if self.quantite_de_lait < 25:
+                    self.quantite_de_lait += 1
+                done = True
+            else:
+                output.append(i)
+
+        self.image_lait = ":".join(list(reversed(output)))
+
         print(self.image_lait)
         print(self.quantite_de_lait)
+        display.show(Image(self.image_lait))
 
     def mode_compteur(self):
         """permet de compter la quantité de lait"""
@@ -334,7 +373,10 @@ class Parent(Device):
             if pin_logo.is_touched():
                 self.menu()
             if button_a.is_pressed() and button_b.is_pressed():
-                display.scroll(str(self.quantite_de_lait))
+                if self.quantite_de_lait == 0:
+                    display.scroll("0ml")
+                else:
+                    display.scroll(str(self.quantite_de_lait)+"00ml")
                 display.show(Image(self.image_lait))
                 sleep(1000)
                 if button_a.is_pressed() and button_b.is_pressed():
