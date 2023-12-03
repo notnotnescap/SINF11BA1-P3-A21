@@ -14,7 +14,7 @@ from microbit import pin_logo
 from microbit import sleep
 from microbit import display
 from microbit import Image
-# from microbit import accelerometer
+from microbit import accelerometer
 # from microbit import compass
 
 # from microbit import i2c
@@ -28,8 +28,8 @@ from microbit import Image
 
 # import audio
 # import machine
-# import music
 # import neopixel
+import music
 import sys
 import radio
 import random
@@ -272,7 +272,7 @@ class Parent(Device):
         self.image_lait = "00000:00000:00000:00000:00000"
         self.index_menu = 0
         self.menu_items = [("C", self.mode_compteur), # Compteur (quantité de lait)
-                        ("S", self.mode_status), # Status
+                        ("S", self.mode_statut), # Status
                         ("T", self.mode_temperature), # Temperature
                         ("F", self.mode_find)] # Find
         self.IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),
@@ -369,9 +369,7 @@ class Parent(Device):
         """permet de compter la quantité de lait"""
         display.show(Image(self.image_lait))
         wait_for_button_up_not_cenceled("ab")
-        while True:
-            if pin_logo.is_touched():
-                self.menu()
+        while not pin_logo.is_touched():
             if button_a.is_pressed() and button_b.is_pressed():
                 if self.quantite_de_lait == 0:
                     display.scroll("0ml")
@@ -391,24 +389,27 @@ class Parent(Device):
                 if wait_for_button_up_not_cenceled("b"):
                     self.remove_lait()
                     wait_for_button_up_not_cenceled("b")
+        self.menu()
 
-    def mode_status(self):
+    def mode_statut(self):
         """permet de voir l'état de l'Enfant"""
 
-        animation_counter = 0
-        display.show(self.IMAGE_SLEEP_SEQUENCE[1])
-        while True:
-            if pin_logo.is_touched():
-                self.menu()
-            message = radio.receive()
-            if message == "STATUSr|6|ASLEEP":
-                animation_counter += 1
-                if animation_counter % 5 == 0:
-                    display.show(self.IMAGE_SLEEP_SEQUENCE[0])
-                elif animation_counter % 2 == 0:
-                    display.show(self.IMAGE_SLEEP_SEQUENCE[2])
-                else:
-                    display.show(self.IMAGE_SLEEP_SEQUENCE[1])
+        # animation_counter = 0
+        # display.show(self.IMAGE_SLEEP_SEQUENCE[1])
+        while not pin_logo.is_touched():
+            message = unpack_data(radio.receive(), key)
+            if message and message[0] == "STATUT":
+                display.show(str(message[2]))
+            # if message[0] == "STATUT" and message[2] == "0":
+                # animation_counter += 1
+                # if animation_counter % 5 == 0:
+                #     display.show(self.IMAGE_SLEEP_SEQUENCE[0])
+                # elif animation_counter % 2 == 0:
+                #     display.show(self.IMAGE_SLEEP_SEQUENCE[2])
+                # else:
+                #     display.show(self.IMAGE_SLEEP_SEQUENCE[1])
+            
+        self.menu()
 
     def mode_temperature(self):
         while not pin_logo.is_touched():
@@ -436,12 +437,41 @@ class Child(Device):
     def __init__(self, id) -> None:
         super().__init__(id)
         self.statut = 0
-        self.main()
+        self.history = [0,0,0,0,0,0,0,0,0,0]
+        self.main() # Toujour mettre en dernier!
 
     def main(self):
+        previous = 0
         while True:
-            send_packet(key, "STATUT", self.statut)
-            sleep(1000)
+            for i in range(10000):
+                message = unpack_data(radio.receive(), key)
+                if i % 500 == 0:
+                    avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z())/3
+                    speed = abs((avg - previous) / 100)
+
+                    self.history.append(speed)
+                    self.history.pop(0)
+
+                    print("\033c")
+                    agitation = sum(self.history)/len(self.history)
+                    print(agitation)
+                    # print(history)
+
+                    if agitation < 0.8:
+                        self.statut = 0
+                        display.show("0")
+                    elif agitation < 3.0:
+                        self.statut = 1
+                        display.show("1")
+                    elif agitation < 4.0:
+                        self.statut = 2
+                        display.show("2")
+
+                    previous = avg
+            send_packet(key, "STATUT", str(self.statut))
+            # display.show(Image("00000:00000:00900:00000:00000"))
+            # display.clear()
+            # sleep(100)
 
 
 # device = Device()
