@@ -17,20 +17,20 @@ M=ord
 F=True
 D=str
 C=print
-from microbit import button_a as G,button_b as H,pin_logo as V,sleep as J,display as A,Image as E,accelerometer as c
-import music,sys,radio as I,random as k
-l=F
+from microbit import button_a as G,button_b as H,pin_logo as V,sleep as J,display as A,Image as E,accelerometer as c,microphone as k
+import music,sys,radio as I,random as l
+m=F
 B='9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7'
 I.on()
 I.config(channel=69,group=42)
-def m():
+def n():
 	J='CONF';H='ASK';G='ID';A.show(E(d));L(B,G,H)
 	while F:
 		D=P(I.receive(),B)
 		if D:
 			if D[0]==G and D[2]==H:L(B,G,J);C('ID: 2');return 2
 			if D[0]==G and D[2]==J:C('ID: 1');return 1
-def n():
+def o():
 	E='ROLE';A.show('?')
 	while F:
 		D=I.receive()
@@ -49,10 +49,10 @@ def N(string):
 		if A==-1:A=-2
 		return D(A)
 	return''
-def o():
+def p():
 	S='superhash_of_a: {}';R='a: {}';M='SCE';global B
 	if O==1:
-		G=k.randint(0,999999999);C(R.format(G));L(B,M,G);K=N(N(D(G)));C(S.format(K));A.show(E(d))
+		G=l.randint(0,999999999);C(R.format(G));L(B,M,G);K=N(N(D(G)));C(S.format(K));A.show(E(d))
 		while F:
 			H=P(I.receive(),B)
 			if H:
@@ -107,7 +107,7 @@ def P(encrypted_packet,key):
 def L(key,t,content):B=content;A='{}|{}|{}'.format(t,D(W(D(B))),D(B));A=e(A,key);I.send(A)
 class f:
 	def __init__(A,id):A.id=id
-class p(f):
+class q(f):
 	def __init__(A,id):super().__init__(id);A.quantite_de_lait=0;A.image_lait=i;A.index_menu=0;A.menu_items=[('C',A.mode_compteur),('S',A.mode_statut),('T',A.mode_temperature),('F',A.mode_find)];A.IMAGE_SLEEP_SEQUENCE=[E('00000:00000:99099:00000:09990'),E('00000:99990:00900:09000:99990'),E('09999:00090:00900:09999:00000')];A.menu()
 	def menu(B):
 		A.clear();J(100)
@@ -170,7 +170,7 @@ class p(f):
 				elif B>-40:A.show(U)
 				else:A.show(abs(B)//10-2)
 		D.menu()
-class q(f):
+class r(f):
 	def __init__(A,id):super().__init__(id);A.statut=0;A.history=[0,0,0,0,0,0,0,0,0,0];A.main()
 	def main(E):
 		H=0
@@ -178,15 +178,15 @@ class q(f):
 			for K in range(10000):
 				N=P(I.receive(),B)
 				if K%500==0:
-					J=(c.get_x()+c.get_y()+c.get_z())/3;M=abs((J-H)/100);E.history.append(M);E.history.pop(0);C('\x1bc');G=sum(E.history)/W(E.history);C(G)
+					J=(c.get_x()+c.get_y()+c.get_z()+k.sound_level()*100)/4;M=abs((J-H)/100);E.history.append(M);E.history.pop(0);C('\x1bc');G=sum(E.history)/W(E.history);C(G)
 					if G<.8:E.statut=0;A.show(U)
 					elif G<3.:E.statut=1;A.show('1')
 					elif G<4.:E.statut=2;A.show('2')
 					H=J
 			L(B,j,D(E.statut))
-if not l:O=m();A.show(D(O));J(500);A.clear();o()
+if not m:O=n();A.show(D(O));J(500);A.clear();p()
 else:O=0
-g=n()
-if g==S:r=p(O)
-elif g==R:r=q(O)
+g=o()
+if g==S:s=q(O)
+elif g==R:s=r(O)
 else:A.scroll('ROLE ERROR')

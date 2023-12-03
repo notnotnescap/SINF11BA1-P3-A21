@@ -11,7 +11,7 @@ Note : Si `BYPASS_CONNECT` est `True` (Elle l'est par défaut), la m:b ne se con
 
 ## Mode Enfant
 
-Le mode enfant n'est pas encore implémenté.
+Le mode enfant affiche '0' si l'enfant dort, '1' si l'enfant est agité et '2' si l'enfant est très agité.
 
 ## Mode Parent
 

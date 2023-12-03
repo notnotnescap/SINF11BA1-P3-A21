@@ -17,8 +17,8 @@ from microbit import Image
 from microbit import accelerometer
 # from microbit import compass
 
+from microbit import microphone
 # from microbit import i2c
-# from microbit import microphone
 # from microbit import power
 # from microbit import speaker
 # from microbit import spi
@@ -446,7 +446,7 @@ class Child(Device):
             for i in range(10000):
                 message = unpack_data(radio.receive(), key)
                 if i % 500 == 0:
-                    avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z())/3
+                    avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z()+microphone.sound_level()*100)/4
                     speed = abs((avg - previous) / 100)
 
                     self.history.append(speed)
