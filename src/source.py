@@ -28,7 +28,6 @@ from microbit import microphone
 
 # import audio
 # import machine
-# import neopixel
 import music
 import sys
 import radio
@@ -136,6 +135,11 @@ def establish_secure_connection():
 
                         display.show(Image.YES)
                         sleep(500)
+
+                        display.scroll(message, delay=80)
+                        # oui, c'est complètement stupide mais c'est dans les consignes
+                        # si quelque chose c'est cassé c'est surement ça
+
                         return
                     display.show(Image.NO)
                     sys.exit()
@@ -170,6 +174,10 @@ def establish_secure_connection():
         #                 return
         #             display.show(Image.NO)
         #             sys.exit()
+
+        display.scroll(message, delay=80)
+        # oui, c'est complètement stupide mais c'est dans les consignes
+        # si quelque chose c'est cassé c'est surement ça
 
 def wait_for_button_up_not_cenceled(button: str) -> bool:
     """
@@ -468,6 +476,12 @@ class Child(Device):
                         display.show("2")
 
                     previous = avg
+
+                if button_b.is_pressed() and self.statut > 0:
+                    music.play(music.PYTHON, wait=False)
+                    wait_for_button_up_not_cenceled("b")
+                if button_a.is_pressed() and self.statut > 0:
+                    music.stop()
             send_packet(key, "STATUT", str(self.statut))
             # display.show(Image("00000:00000:00900:00000:00000"))
             # display.clear()
