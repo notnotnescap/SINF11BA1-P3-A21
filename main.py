@@ -1,3 +1,4 @@
+# le code original se trouve dans src/source.py
 k='STATUT'
 j='00000:00000:00000:00000:00000'
 i=reversed
