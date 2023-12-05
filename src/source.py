@@ -4,7 +4,7 @@ P3-SINF11BA1-A21
 Johannes Edvard Radesey (nescapp sur Github) - 07042301
 Arthur Backes (arthur backes sur Github) - 13512301
 Hugo Restiau (HugoRst sur Github) - 46242300
--> ... (à compléter)
+Omari Johnson (243-FIREMAN) - 56542200
 """
 # Basics
 
