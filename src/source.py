@@ -61,15 +61,17 @@ def get_role() -> str:
     """
     display.show("?")
     while True:
-        message = radio.receive()
-        if button_a.is_pressed() or message == "E":
+        # message = unpack_data(radio.receive(), key)
+        # if message:
+        #     message = message[2]
+        if button_a.is_pressed():
             send_packet(key, "ROLE", "E")
             display.show("P")
             sleep(1000)
             display.clear()
             print("Parent")
             return "P"
-        if button_b.is_pressed() or message == "P":
+        if button_b.is_pressed():
             send_packet(key, "ROLE", "P")
             display.show("E")
             sleep(1000)
@@ -136,7 +138,7 @@ def establish_secure_connection():
                         display.show(Image.YES)
                         sleep(500)
 
-                        display.scroll(message, delay=80)
+                        # display.scroll(message, delay=80)
                         # oui, c'est complètement stupide mais c'est dans les consignes
                         # si quelque chose c'est cassé c'est surement ça
 
@@ -175,7 +177,7 @@ def establish_secure_connection():
         #             display.show(Image.NO)
         #             sys.exit()
 
-        display.scroll(message, delay=80)
+        # display.scroll(message, delay=80)
         # oui, c'est complètement stupide mais c'est dans les consignes
         # si quelque chose c'est cassé c'est surement ça
 
