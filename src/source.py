@@ -61,17 +61,15 @@ def get_role() -> str:
     """
     display.show("?")
     while True:
-        # message = unpack_data(radio.receive(), key)
-        # if message:
-        #     message = message[2]
-        if button_a.is_pressed():
+        message = unpack_data(radio.receive(), key)
+        if button_a.is_pressed() or message and message[0] == "ROLE" and message[2] == "P":
             send_packet(key, "ROLE", "E")
             display.show("P")
             sleep(1000)
             display.clear()
             print("Parent")
             return "P"
-        if button_b.is_pressed():
+        if button_b.is_pressed() or message and message[0] == "ROLE" and message[2] == "E":
             send_packet(key, "ROLE", "P")
             display.show("E")
             sleep(1000)
@@ -130,18 +128,10 @@ def establish_secure_connection():
                 if message[0] == "SCE":
                     if message[2] == superhash_of_a:
                         key = key + hashing(str(a))
-
-                        # VERIFICATION A TESTER
-                        # sleep(500)
-                        # send_packet(defaultkey, "SCE", "CHECK")
-
+                        sleep(500)
+                        send_packet(key, "SCE", "CHECK")
                         display.show(Image.YES)
                         sleep(500)
-
-                        # display.scroll(message, delay=80)
-                        # oui, c'est complètement stupide mais c'est dans les consignes
-                        # si quelque chose c'est cassé c'est surement ça
-
                         return
                     display.show(Image.NO)
                     sys.exit()
@@ -159,27 +149,17 @@ def establish_secure_connection():
         print("superhash_of_a: {}".format(superhash_of_a))
         send_packet(key, "SCE", superhash_of_a)
         key = key + hashing(str(a))
+        while True:
+            message = unpack_data(radio.receive(), key)
+            if message:
+                if message[0] == "SCE":
+                    if message[2] == "CHECK":
+                        display.show(Image.YES)
+                        sleep(500)
+                        return
+                    display.show(Image.NO)
+                    sys.exit()
 
-        # Enlever ces deux lignes pour tester la vérification
-        display.show(Image.YES)
-        sleep(500)
-
-        # La vérification est importante pour éviter que l'autre mb ne sache pas que le test a échoué
-
-        # VERIFICATION A TESTER
-        # while True:
-        #     message = unpack_data(radio.receive(), defaultkey)
-        #     if message:
-        #         if message[0] == "SCE":
-        #             if message[2] == "CHECK":
-        #                 display.show(Image.YES)
-        #                 return
-        #             display.show(Image.NO)
-        #             sys.exit()
-
-        # display.scroll(message, delay=80)
-        # oui, c'est complètement stupide mais c'est dans les consignes
-        # si quelque chose c'est cassé c'est surement ça
 
 def wait_for_button_up_not_cenceled(button: str) -> bool:
     """
@@ -347,16 +327,6 @@ class Parent(Device):
 
     def remove_lait(self) -> None:
         """Retire 1 unité de lait"""
-        # last_zero_index = self.image_lait.rfind("0")
-        # if last_zero_index != -1:
-        #     self.image_lait = self.image_lait[:last_zero_index] + "9" + self.image_lait[last_zero_index+1:]
-        # display.show(Image(self.image_lait))
-        # if self.quantite_de_lait < 25:
-        #     self.quantite_de_lait += 1
-        # print(self.quantite_de_lait)
-        # print(self.image_lait)
-        # print(self.quantite_de_lait)
-
         split = self.image_lait.split(":")
         output = []
         done = False
@@ -422,8 +392,13 @@ class Parent(Device):
         self.menu()
 
     def mode_temperature(self):
+        send_packet(key, "CMD", "GETTEMP")
         while not pin_logo.is_touched():
-            display.show("x")
+            message = unpack_data(radio.receive(), key)
+            if message:
+                if message[0] == "TEMP":
+                    display.scroll(str(message[2]))
+                    break
         self.menu()
 
     def mode_find(self):
@@ -447,6 +422,7 @@ class Child(Device):
     def __init__(self, id) -> None:
         super().__init__(id)
         self.statut = 0
+        self.old_statut = 0
         self.history = [0,0,0,0,0,0,0,0,0,0]
         self.main() # Toujour mettre en dernier!
 
@@ -462,9 +438,9 @@ class Child(Device):
                     self.history.append(speed)
                     self.history.pop(0)
 
-                    print("\033c")
+                    # print("\033c")
                     agitation = sum(self.history)/len(self.history)
-                    print(agitation)
+                    # print(agitation)
                     # print(history)
 
                     if agitation < 0.8:
@@ -484,10 +460,15 @@ class Child(Device):
                     wait_for_button_up_not_cenceled("b")
                 if button_a.is_pressed() and self.statut > 0:
                     music.stop()
-            send_packet(key, "STATUT", str(self.statut))
-            # display.show(Image("00000:00000:00900:00000:00000"))
-            # display.clear()
-            # sleep(100)
+
+            if self.statut != self.old_statut:
+                send_packet(key, "STATUT", str(self.statut))
+                self.old_statut = self.statut
+            if message:
+                if message[0] == "CMD" and message[2] == "GETTEMP":
+                    sleep(100)
+                    send_packet(key, "TEMP", str(temperature()))
+                    print("TEMP: {}".format(temperature()))
 
 
 # device = Device()
