@@ -1,12 +1,20 @@
 """
 P3-SINF11BA1-A21
 
+Auteurs:
 Johannes Edvard Radesey (nescapp sur Github) - 07042301
 Arthur Backes (arthur backes sur Github) - 13512301
 Hugo Restiau (HugoRst sur Github) - 46242300
 Omari Johnson (243-FIREMAN) - 56542200
 """
-# Basics
+
+import sys
+import random
+import music
+import radio
+# import audio
+# import machine
+# import speech
 
 from microbit import button_a
 from microbit import button_b
@@ -25,63 +33,17 @@ from microbit import microphone
 # from microbit import spi
 # from microbit import uart
 
-# import audio
-# import machine
-import music
-import sys
-import radio
-import random
-# import speech
-
-
 BYPASS_CONNECT = False
 SILENT = False
 MDP = "09999:00000:00000:00000:00000"
-key = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
+KEY = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
 radio.on()
 radio.config(channel=69, group=42)
 
-def get_id() -> int:
-    display.show(Image("00000:00000:90909:00000:00000"))
-    send_packet(key, "ID", "ASK") # est ce que je peux etre la m:b 1?
-    while True:
-        message = unpack_data(radio.receive(), key)
-        if message:
-            if message[0] == "ID" and message[2] == "ASK": #est ce que je peux etre la m:b 1?
-
-                send_packet(key, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
-                print("ID: 2")
-                if not SILENT: music.play('c6:1')
-                return 2
-            if message[0] == "ID" and message[2] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
-                print("ID: 1")
-                if not SILENT: music.play('c5:1')
-                return 1
-
 def get_role() -> str:
-    """
-    La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte.
-    """
-    display.show("?")
-    while True:
-        message = unpack_data(radio.receive(), key)
-        if button_a.is_pressed() or message and message[0] == "ROLE" and message[2] == "P":
-            send_packet(key, "ROLE", "E")
-            display.show("P")
-            sleep(1000)
-            display.clear()
-            print("Parent")
-            if not SILENT: music.play('g5:1')
-            return "P"
-        if button_b.is_pressed() or message and message[0] == "ROLE" and message[2] == "E":
-            send_packet(key, "ROLE", "P")
-            display.show("E")
-            sleep(1000)
-            display.clear()
-            print("Child")
-            if not SILENT: music.play('e5:1')
-            return "E"
+    """La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte."""
+    
 
 def hashing(string):
     """
@@ -118,65 +80,70 @@ def hashing(string):
         return str(x)
     return ""
 
-
 def establish_secure_connection():
-    global key
+    """Etablit une connexion chiffrée entre les deux m:b"""
+    global KEY
     if ID == 1:
         if not SILENT: music.play('g5:1')
-        a = random.randint(0, 999999999)
+
+        a = random.randint(0, 999999999) # génère un nombre aléatoire entre 0 et 999999999
         print("a: {}".format(a))
-        send_packet(key, "SCE", a)
-        superhash_of_a = hashing(hashing(str(a)))
+
+        send_packet(KEY, "SCE", a) # envoie le nombre aléatoire à la m:b 2
+        superhash_of_a = hashing(hashing(str(a))) # hache le nombre aléatoire 2 fois
         print("superhash_of_a: {}".format(superhash_of_a))
+
         display.show(Image("00000:00000:90909:00000:00000"))
-        while True:
-            message = unpack_data(radio.receive(), key)
-            if message:
-                if message[0] == "SCE":
-                    if message[2] == superhash_of_a:
-                        key = key + hashing(str(a))
-                        sleep(500)
-                        send_packet(key, "SCE", "CHECK")
-                        if not SILENT: music.play('c6:1')
-                        display.show(Image.YES)
-                        sleep(500)
-                        return
-                    display.show(Image.NO)
-                    if not SILENT: music.play('c#:1')
-                    sys.exit()
+
+        while True: # attend la réponse de la m:b 2
+            message = unpack_data(radio.receive(), KEY)
+            if message and message[0] == "SCE":
+                if message[2] == superhash_of_a: # si les deux nombres aléatoires hachés sont identiques, la connexion est sécurisée
+                    KEY = KEY + hashing(str(a)) # crée une clé de chiffrement unique pour les deux m:b
+                    sleep(500)
+                    send_packet(KEY, "SCE", "CHECK") # envoie un message de confirmation à la m:b 2
+                    if not SILENT: music.play('c6:1')
+                    # de ce coté, la connexion est sécurisée
+                    display.show(Image.YES)
+                    sleep(500)
+                    return
+                display.show(Image.NO)
+                if not SILENT: music.play('c#:1')
+                sys.exit()
 
     if ID == 2:
         if not SILENT: music.play('e5:1')
         display.show(Image("00000:00000:90909:00000:00000"))
-        while True:
-            message = unpack_data(radio.receive(), key)
-            if message:
-                if message[0] == "SCE":
-                    break
+
+        while True: # attend le nombre aléatoire de la m:b 1
+            message = unpack_data(radio.receive(), KEY)
+            if message and message[0] == "SCE":
+                break
         a = int(message[2])
         print("a: {}".format(a))
-        superhash_of_a = hashing(hashing(str(a)))
-        print("superhash_of_a: {}".format(superhash_of_a))
-        send_packet(key, "SCE", superhash_of_a)
-        key = key + hashing(str(a))
-        while True:
-            message = unpack_data(radio.receive(), key)
-            if message:
-                if message[0] == "SCE":
-                    if message[2] == "CHECK":
-                        if not SILENT: music.play('c5:1')
-                        display.show(Image.YES)
-                        sleep(500)
-                        return
-                    display.show(Image.NO)
-                    if not SILENT: music.play('bb:1')
-                    sys.exit()
 
+        superhash_of_a = hashing(hashing(str(a))) # hache le nombre aléatoire 2 fois
+        print("superhash_of_a: {}".format(superhash_of_a))
+
+        send_packet(KEY, "SCE", superhash_of_a) # envoie le nombre aléatoire haché à la m:b 1 pour confirmation
+        KEY = KEY + hashing(str(a)) # crée une clé de chiffrement unique pour les deux m:b
+
+        while True: # attend la confirmation de la m:b 1
+            message = unpack_data(radio.receive(), KEY)
+            if message and message[0] == "SCE":
+                if message[2] == "CHECK": # si la m:b 1 confirme, la connexion est sécurisée
+                    if not SILENT: music.play('c5:1')
+                    display.show(Image.YES)
+                    sleep(500)
+                    return
+                display.show(Image.NO)
+                if not SILENT: music.play('bb:1')
+                sys.exit()
 
 def wait_for_button_up_not_cenceled(button: str) -> bool:
     """
-    prend en paramètre le bouton à attendre (a, b ou ab)
-    Attend que le bouton soit relaché
+    prend en paramètre le bouton à attendre ('a', 'b' ou 'ab')
+    Attend que le bouton soit relaché et retourne True si l'autre bouton n'est pas appuyé
     """
     if button.lower() == "a":
         while button_a.is_pressed() and not button_b.is_pressed():
@@ -195,6 +162,7 @@ def wait_for_button_up_not_cenceled(button: str) -> bool:
             pass
 
 def vigenere(message:str, key:str, decryption:bool=False):
+    """Encrypte ou décrypte un message avec la méthode de Vigenère)"""
     text = ""
     key_length = len(key)
     key_as_int = [ord(k) for k in key]
@@ -271,7 +239,7 @@ class ImageMdp():
         self.imageMdp = Image(self.StrucMdpActu)
         self.placedPinMdp = "00000:00000:00000:00000:00000"
 
-    def check_entry(self) -> bool:
+    def check_entered_password(self) -> bool:
         """Vérifie si le mot de passe entré est correct"""
         rep = False
         if self.StrucMdpFin == self.placedPinMdp:
@@ -279,19 +247,7 @@ class ImageMdp():
         self.placedPinMdp = "00000:00000:00000:00000:00000"
         return rep
 
-    # fonction pas utilisée ??  
-    # def change_image(self, index:int, direction) -> None: 
-    #     """Change l'image du mot de passe"""
-    #     n = 0
-    #     if index in [5, 11, 17, 23]:
-    #         return False
-    #     for _ in range(self.StrucMdpActu):
-    #         if n == index and self.StrucMdpActu[index] == "0":
-    #             self.StrucMdpActu = self.StrucMdpActu[:index-1] + "9" + self.StrucMdpActu[index+1:]
-    #         if n == index and self.StrucMdpActu[index] == "9":
-    #             self.StrucMdpActu = self.StrucMdpActu[:index-1] + "0" + self.StrucMdpActu[index+1:]
-
-    def change_position(self, direction:str):
+    def cursor_change_position(self, direction:str):
         """Change la position du curseur"""
         for i, digit in enumerate(self.StrucMdpActu):
             if digit == "9":
@@ -324,7 +280,7 @@ class ImageMdp():
                         self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
                     return True
 
-    def place_pin_mdp(self):
+    def place_pin_for_password(self):
         """Place un pin dans le mot de passe"""
         for i, digit in enumerate(self.StrucMdpActu):
             if digit == "9":
@@ -341,20 +297,18 @@ class ImageMdp():
                 print(self.placedPinMdp)
                 return True
 
-    def show_image_pin_placed(self):
+    def show_image_placed_pins(self):
         """Affiche l'image du mot de passe avec le pin placé"""
         display.show(Image(self.placedPinMdp))
         print(self.placedPinMdp)
         sleep(500)
 
-def check_mdp():
+def check_password():
     """Vérifie si le mot de passe entré est correct"""
     count = 0
     imageMdp = ImageMdp()
     while True:
         display.show(Image(imageMdp.StrucMdpActu))
-
-        # normalement le problème n'est pas ici
 
         if button_a.is_pressed() and button_b.is_pressed():
             if not SILENT:
@@ -363,39 +317,43 @@ def check_mdp():
                 else:
                     music.play(['g4:1'])
             count += 1
-            imageMdp.place_pin_mdp()
+            imageMdp.place_pin_for_password()
             wait_for_button_up_not_cenceled("ab")
 
         if button_a.is_pressed():
             if wait_for_button_up_not_cenceled("a"):
-                imageMdp.change_position(direction="l")
+                imageMdp.cursor_change_position(direction="l")
                 wait_for_button_up_not_cenceled("a")
 
         if button_b.is_pressed():
             if wait_for_button_up_not_cenceled("b"):
-                imageMdp.change_position(direction="r")
+                imageMdp.cursor_change_position(direction="r")
                 wait_for_button_up_not_cenceled("b")
 
         if count == 4:
-            if imageMdp.check_entry():
-                imageMdp.show_image_pin_placed()
+            if imageMdp.check_entered_password():
+                imageMdp.show_image_placed_pins()
                 display.show(Image.YES)
                 sleep(500)
                 display.clear()
                 return True
 
-            imageMdp.show_image_pin_placed()
+            imageMdp.show_image_placed_pins()
             display.show(Image.NO)
             sleep(500)
             display.clear()
             count = 0
 
 class Device:
-    def __init__(self, id) -> None:
-        self.id = id
+    """Classe parente des classes Parent et Child"""
+    def __init__(self, id:int) -> None:
+        """Initialise la m:b (Parent ou Enfant)"""
+        self.id = id # 1 ou 2
 
 class Parent(Device):
+    """Classe permettant de gérer la m:b Parent"""
     def __init__(self,id) -> None:
+        """Initialise la m:b Parent"""
         super().__init__(id)
         self.quantite_de_lait = 0
         self.image_lait = "00000:00000:00000:00000:00000"
@@ -409,10 +367,11 @@ class Parent(Device):
         self.IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),
                                      Image("00000:99990:00900:09000:99990"), 
                                      Image("09999:00090:00900:09999:00000")]
-        check_mdp()
+        check_password()
         self.menu() # Toujour mettre en dernier!
 
     def menu(self):
+        """Affiche le menu parent"""
         display.clear()
         sleep(100)
 
@@ -438,7 +397,7 @@ class Parent(Device):
                         self.index_menu = 0
 
     def add_lait(self) -> None:
-        """Ajoute 1 unité de lait"""
+        """Ajoute 10ml de lait"""
         # self.image_lait = self.image_lait.replace("9", "0", 1)
         # display.show(Image(self.image_lait))
         # if self.quantite_de_lait > 0:
@@ -468,7 +427,7 @@ class Parent(Device):
         display.show(Image(self.image_lait))
 
     def remove_lait(self) -> None:
-        """Retire 1 unité de lait"""
+        """Retire 10ml de lait"""
         split = self.image_lait.split(":")
         output = []
         done = False
@@ -502,16 +461,17 @@ class Parent(Device):
                 if button_a.is_pressed() and button_b.is_pressed():
                     self.image_lait = "00000:00000:00000:00000:00000"
                     self.quantite_de_lait = 0
+                    send_packet(KEY, "SETQLAIT", str(self.quantite_de_lait))
                     display.show(Image(self.image_lait))
             elif button_a.is_pressed():
                 if wait_for_button_up_not_cenceled("a"):
                     self.add_lait()
-                    send_packet(key, "SETQLAIT", str(self.quantite_de_lait))
+                    send_packet(KEY, "SETQLAIT", str(self.quantite_de_lait))
                     wait_for_button_up_not_cenceled("a")
             elif button_b.is_pressed():
                 if wait_for_button_up_not_cenceled("b"):
                     self.remove_lait()
-                    send_packet(key, "SETQLAIT", str(self.quantite_de_lait))
+                    send_packet(KEY, "SETQLAIT", str(self.quantite_de_lait))
                     wait_for_button_up_not_cenceled("b")
         self.menu()
 
@@ -522,7 +482,7 @@ class Parent(Device):
         # display.show(self.IMAGE_SLEEP_SEQUENCE[1])
         display.show("0")
         while not pin_logo.is_touched():
-            message = unpack_data(radio.receive(), key)
+            message = unpack_data(radio.receive(), KEY)
             if message and message[0] == "STATUT":
                 display.show(str(message[2]))
                 if not SILENT:
@@ -545,9 +505,10 @@ class Parent(Device):
         self.menu()
 
     def mode_temperature(self):
-        send_packet(key, "CMD", "GETTEMP")
+        """Affiche la température de l'Enfant"""
+        send_packet(KEY, "CMD", "GETTEMP")
         while not pin_logo.is_touched():
-            message = unpack_data(radio.receive(), key)
+            message = unpack_data(radio.receive(), KEY)
             if message:
                 if message[0] == "TEMP":
                     display.scroll(str(message[2]))
@@ -556,7 +517,7 @@ class Parent(Device):
 
     def mode_find(self):
         """permet de trouver la m:b Enfant"""
-        send_packet(key, "CMD", "STARTFIND")
+        send_packet(KEY, "CMD", "STARTFIND")
         while not pin_logo.is_touched():
             force_signal = radio.receive_full()
             if force_signal:
@@ -570,18 +531,19 @@ class Parent(Device):
                 else:
                     display.show(abs(force_signal)//10-2)
 
-        send_packet(key, "CMD", "STOPFIND")
+        send_packet(KEY, "CMD", "STOPFIND")
         self.menu()
 
     def mode_light(self):
+        """permet de mettre la m:b Enfant en mode veilleuse"""
         if self.light:
-            send_packet(key, "CMD", "STOPLIGHT")
+            send_packet(KEY, "CMD", "STOPLIGHT")
             display.show(Image.NO)
             sleep(1000)
             display.clear()
             self.light = False
         else:
-            send_packet(key, "CMD", "STARTLIGHT")
+            send_packet(KEY, "CMD", "STARTLIGHT")
             display.show(Image.YES)
             sleep(1000)
             display.clear()
@@ -589,7 +551,9 @@ class Parent(Device):
         self.menu()
 
 class Child(Device):
-    def __init__(self, id) -> None:
+    """Classe permettant de gérer la m:b Enfant"""
+    def __init__(self, id):
+        """Initialise la m:b Enfant"""
         super().__init__(id)
         self.statut = 0
         self.old_statut = 0
@@ -598,16 +562,17 @@ class Child(Device):
         self.quantite_de_lait = 0
         self.findmode = False
         self.show_statut = True
-        self.main() # Toujour mettre en dernier!
+        self.main() # lance la boucle principale
 
     def main(self):
+        """Boucle principale de la m:b Enfant"""
         previous = 0
         while True:
-            for i in range(10000):
-                message = unpack_data(radio.receive(), key)
+            for i in range(10000): # oui, c'est un peu sale, mais il n'y a pas moyen d'exécuter du code en parallèle
+                message = unpack_data(radio.receive(), KEY)
                 if i % 500 == 0:
-                    if self.findmode:
-                        send_packet(key, "PING", "PING")
+                    if self.findmode: # envoyer un signal radio pour aider la m:b Parent à trouver la m:b Enfant
+                        send_packet(KEY, "PING", "PING")
 
                     avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z()+microphone.sound_level()*100)/4
                     speed = abs((avg - previous) / 100)
@@ -633,7 +598,7 @@ class Child(Device):
                     previous = avg
 
                 if self.statut != self.old_statut:
-                    send_packet(key, "STATUT", str(self.statut))
+                    send_packet(KEY, "STATUT", str(self.statut))
                     self.old_statut = self.statut
 
                 if button_b.is_pressed() and self.statut > 0:
@@ -654,28 +619,45 @@ class Child(Device):
                         display.show(Image("99999:99999:99999:99999:99999"))
 
                 if message:
-                    if message[0] == "CMD" and message[2] == "GETTEMP":
-                        sleep(100)
-                        send_packet(key, "TEMP", str(temperature()))
-                        print("TEMP: {}".format(temperature()))
-                    if message[0] == "CMD" and message[2] == "STARTFIND":
-                        self.findmode = True
-                    if message[0] == "CMD" and message[2] == "STOPFIND":
-                        self.findmode = False
-                    if message[0] == "CMD" and message[2] == "STARTLIGHT":
-                        display.show(Image("99999:99999:99999:99999:99999"))
-                        self.show_statut = False
-                    if message[0] == "CMD" and message[2] == "STOPLIGHT":
-                        display.clear()
-                        self.show_statut = True
-                    if message[0] == "SETQLAIT":
+                    if message[0] == "CMD":
+                        if message[2] == "GETTEMP":
+                            sleep(100)
+                            send_packet(KEY, "TEMP", str(temperature()))
+                            print("TEMP: {}".format(temperature()))
+                        elif message[2] == "STARTFIND":
+                            self.findmode = True
+                        elif message[2] == "STOPFIND":
+                            self.findmode = False
+                        elif message[2] == "STARTLIGHT":
+                            display.show(Image("99999:99999:99999:99999:99999"))
+                            self.show_statut = False
+                        elif message[2] == "STOPLIGHT":
+                            display.clear()
+                            self.show_statut = True
+                    elif message[0] == "SETQLAIT":
                         self.quantite_de_lait = int(message[2])
                         print("SETQLAIT: {}".format(self.quantite_de_lait))
 
-music.play('c6:1')
+if not SILENT: music.play('c6:1')
 
 if not BYPASS_CONNECT:
-    ID = get_id()
+    # identification de la m:b 1 et 2
+    display.show(Image("00000:00000:90909:00000:00000"))
+    send_packet(KEY, "ID", "ASK") # est ce que je peux etre la m:b 1?
+    while True:
+        message = unpack_data(radio.receive(), KEY)
+        if message:
+            if message[0] == "ID" and message[2] == "ASK": #est ce que je peux etre la m:b 1?
+                send_packet(KEY, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
+                print("ID: 2")
+                if not SILENT: music.play('c6:1')
+                ID = 2
+                break
+            if message[0] == "ID" and message[2] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
+                print("ID: 1")
+                if not SILENT: music.play('c5:1')
+                ID = 1
+                break
     display.show(str(ID))
     sleep(500)
     display.clear()
@@ -683,10 +665,26 @@ if not BYPASS_CONNECT:
 else:
     ID = 0
 
-ROLE = get_role()
-if ROLE == "P":
-    device = Parent(ID)
-elif ROLE == "E":
-    device = Child(ID)
-else:
-    display.scroll("ROLE ERROR")
+# choix du rôle de la m:b
+
+display.show("?")
+while True:
+    message = unpack_data(radio.receive(), KEY)
+    if button_a.is_pressed() or message and message[0] == "ROLE" and message[2] == "P":
+        send_packet(KEY, "ROLE", "E")
+        display.show("P")
+        sleep(1000)
+        display.clear()
+        print("Parent")
+        if not SILENT: music.play('g5:1')
+        device = Parent(ID)
+        break
+    if button_b.is_pressed() or message and message[0] == "ROLE" and message[2] == "E":
+        send_packet(KEY, "ROLE", "P")
+        display.show("E")
+        sleep(1000)
+        display.clear()
+        print("Child")
+        if not SILENT: music.play('e5:1')
+        device = Child(ID)
+        break
