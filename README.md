@@ -15,7 +15,16 @@ Le mode enfant affiche '0' si l'enfant dort, '1' si l'enfant est agité et '2' s
 
 ## Mode Parent
 
-Si vous avez choisi le mode Parent, vous accederez au menu parent que vous naviguez avec `A` et `B`. Appuiez sur A et B en même temps pour valider votre choix.
+Insérez le mot de passe avec les boutons `A` et `B`. Appuiez sur A et B en même temps pour valider le choix d'une case.
+```
+0xxxx
+00000
+00000
+00000
+00000
+```
+
+Vous accederez ensuite au menu parent que vous naviguez avec `A` et `B`. Appuiez sur A et B en même temps pour valider votre choix.
 
 Dès que vous etes dans un des modes, vous pouvez appuier sur le logo microbit pour revenir au menu parent.
 
