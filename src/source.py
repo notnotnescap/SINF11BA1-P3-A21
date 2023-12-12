@@ -356,7 +356,7 @@ class Parent(Device):
                 if self.quantite_de_lait == 0:
                     display.scroll("0ml")
                 else:
-                    display.scroll(str(self.quantite_de_lait)+"00ml")
+                    display.scroll(str(self.quantite_de_lait)+"0ml")
                 display.show(Image(self.image_lait))
                 sleep(1000)
                 if button_a.is_pressed() and button_b.is_pressed():
@@ -366,10 +366,12 @@ class Parent(Device):
             elif button_a.is_pressed():
                 if wait_for_button_up_not_cenceled("a"):
                     self.add_lait()
+                    send_packet(key, "SETQLAIT", str(self.quantite_de_lait))
                     wait_for_button_up_not_cenceled("a")
             elif button_b.is_pressed():
                 if wait_for_button_up_not_cenceled("b"):
                     self.remove_lait()
+                    send_packet(key, "SETQLAIT", str(self.quantite_de_lait))
                     wait_for_button_up_not_cenceled("b")
         self.menu()
 
@@ -426,6 +428,8 @@ class Child(Device):
         self.statut = 0
         self.old_statut = 0
         self.history = [0,0,0,0,0,0,0,0,0,0]
+        self.playing_music = False
+        self.quantite_de_lait = 0
         self.main() # Toujour mettre en dernier!
 
     def main(self):
@@ -462,17 +466,24 @@ class Child(Device):
                     self.old_statut = self.statut
 
                 if button_b.is_pressed() and self.statut > 0:
-                    music.play(music.PYTHON, wait=False)
+                    if not self.playing_music:
+                        music.play(music.PYTHON, wait=False)
+                        self.playing_music = True
+                    else:
+                        music.stop()
+                        self.playing_music = False
                     wait_for_button_up_not_cenceled("b")
-                if button_a.is_pressed() and self.statut > 0:
-                    music.stop()
+                if button_a.is_pressed():
+                    display.scroll(str(self.quantite_de_lait)+"0ml")
 
                 if message:
-                    if message[0] == "CMD" and message[2] == "GETTEMP":
+                    if message[0] == "CMD"and message[2] == "GETTEMP":
                         sleep(100)
                         send_packet(key, "TEMP", str(temperature()))
                         print("TEMP: {}".format(temperature()))
-
+                    if message[0] == "SETQLAIT":
+                        self.quantite_de_lait = int(message[2])
+                        print("SETQLAIT: {}".format(self.quantite_de_lait))
 
 # device = Device()
 if not BYPASS_CONNECT:

@@ -11,7 +11,7 @@ Note : Si `BYPASS_CONNECT` est `True` (Elle l'est par défaut), la m:b ne se con
 
 ## Mode Enfant
 
-Le mode enfant affiche '0' si l'enfant dort, '1' si l'enfant est agité et '2' si l'enfant est très agité.
+Le mode enfant affiche '0' si l'enfant dort, '1' si l'enfant est agité et '2' si l'enfant est très agité. Si vous appuiez sur `A`, l'enfant sera calmé avec une musique. Appuiyer sur `B` pour afficher la quantité de lait.
 
 ## Mode Parent
 
@@ -21,7 +21,7 @@ Dès que vous etes dans un des modes, vous pouvez appuier sur le logo microbit p
 
 ### Mode 'C' : Compteur de lait
 
-- Pour ajouter une certaine quantité de lait, appuyez sur le bouton `B`. Chaque unité (un point lumineux), correspont à une valeur standart de 100mL de lait.
+- Pour ajouter une certaine quantité de lait, appuyez sur le bouton `B`. Chaque unité (un point lumineux), correspont à une valeur standart de 10mL de lait.
 - Pour retirer une quantité de lait, appuyez sur le bouton `A`.
 - Pour afficher la quantité de lait, appuyez sur les deux boutons `A` et `B` en même temps.
 - Pour réinitialiser la quantité de lait, restez appuyé sur les deux boutons `A` et `B` en même temps.
