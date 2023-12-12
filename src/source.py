@@ -37,6 +37,7 @@ import random
 from microbit import temperature
 
 BYPASS_CONNECT = False
+MDP = "09999:00000:00000:00000:00000"
 key = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
 radio.on()
@@ -253,6 +254,128 @@ def send_packet(key:str, t:str, content:str):
     message = vigenere(message, key)
     radio.send(message)
 
+class ImageMdp():
+    """Classe permettant de gérer une représentation visuelle du mot de passe sur l'écran de la m:b Parent"""
+    def __init__(self) -> None:
+        self.StrucMdpActu = "90000:00000:00000:00000:00000"
+        self.StrucMdpFin = MDP
+        self.imageMdp = Image(self.StrucMdpActu)
+        self.placedPinMdp = "00000:00000:00000:00000:00000"
+
+    def check_entry(self) -> bool:
+        """Vérifie si le mot de passe entré est correct"""
+        rep = False
+        if self.StrucMdpFin == self.placedPinMdp:
+            rep = True
+        self.placedPinMdp = "00000:00000:00000:00000:00000"
+        return rep
+
+    # fonction pas utilisée ??  
+    # def change_image(self, index:int, direction) -> None: 
+    #     """Change l'image du mot de passe"""
+    #     n = 0
+    #     if index in [5, 11, 17, 23]:
+    #         return False
+    #     for _ in range(self.StrucMdpActu):
+    #         if n == index and self.StrucMdpActu[index] == "0":
+    #             self.StrucMdpActu = self.StrucMdpActu[:index-1] + "9" + self.StrucMdpActu[index+1:]
+    #         if n == index and self.StrucMdpActu[index] == "9":
+    #             self.StrucMdpActu = self.StrucMdpActu[:index-1] + "0" + self.StrucMdpActu[index+1:]
+
+    def change_position(self, direction:str):
+        """Change la position du curseur"""
+        for i, digit in enumerate(self.StrucMdpActu):
+            if digit == "9":
+                if direction == "r":
+                    if i == 28:
+                        self.StrucMdpActu = "00000:00000:00000:00000:00009"
+                        return True
+
+                    if self.StrucMdpActu[i+1] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i] + "0:" + "9" + self.StrucMdpActu[i+3:]
+                        return True
+
+                    self.StrucMdpActu = self.StrucMdpActu[:i] + "0" + "9" + self.StrucMdpActu[i+2:]
+                    return True
+
+                if direction == "l":
+                    if self.StrucMdpActu[i-1] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + "9:" + "0" + self.StrucMdpActu[i+1:]
+                        return True
+
+                    if self.StrucMdpActu[i-2] == ":":
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + ":9" + "0" + self.StrucMdpActu[i+1:]
+                    elif i == 1:
+                        self.StrucMdpActu = "90000:00000:00000:00000:00000"
+                        return True
+                    elif i == 0:
+                        self.StrucMdpActu = "90000:00000:00000:00000:00000"
+                        return True
+                    else:
+                        self.StrucMdpActu = self.StrucMdpActu[:i-2] + "09" + "0" + self.StrucMdpActu[i+1:]
+                    return True
+
+    def place_pin_mdp(self):
+        """Place un pin dans le mot de passe"""
+        for i, digit in enumerate(self.StrucMdpActu):
+            if digit == "9":
+                if i == 0:
+                    self.placedPinMdp = "9" + self.placedPinMdp[1:]
+                elif i == 29:
+                    self.placedPinMdp = self.placedPinMdp[0:-1] + "9"
+                else:
+                    if self.placedPinMdp[i-1] == ":":
+                        self.placedPinMdp = self.placedPinMdp[0:i-1] + ":9" + self.placedPinMdp[i+1:]
+                    else:
+                        self.placedPinMdp = self.placedPinMdp[0:i] + "9" + self.placedPinMdp[i+1:]
+                print(i, "index")
+                print(self.placedPinMdp)
+                return True
+
+    def show_image_pin_placed(self):
+        """Affiche l'image du mot de passe avec le pin placé"""
+        display.show(Image(self.placedPinMdp))
+        print(self.placedPinMdp)
+        sleep(500)
+
+def check_mdp():
+    """Vérifie si le mot de passe entré est correct"""
+    count = 0
+    imageMdp = ImageMdp()
+    while True:
+        display.show(Image(imageMdp.StrucMdpActu))
+
+        # normalement le problème n'est pas ici
+
+        if button_a.is_pressed() and button_b.is_pressed():
+            count += 1
+            sleep(1000)
+            imageMdp.place_pin_mdp()
+
+        if button_a.is_pressed():
+            if wait_for_button_up_not_cenceled("a"):
+                imageMdp.change_position(direction="l")
+                wait_for_button_up_not_cenceled("a")
+
+        if button_b.is_pressed():
+            if wait_for_button_up_not_cenceled("b"):
+                imageMdp.change_position(direction="r")
+                wait_for_button_up_not_cenceled("b")
+
+        if count == 4:
+            if imageMdp.check_entry():
+                imageMdp.show_image_pin_placed()
+                display.show(Image.YES)
+                sleep(500)
+                display.clear()
+                return True
+
+            imageMdp.show_image_pin_placed()
+            display.show(Image.NO)
+            sleep(500)
+            display.clear()
+            count = 0
+
 class Device:
     def __init__(self, id) -> None:
         self.id = id
@@ -270,7 +393,8 @@ class Parent(Device):
         self.IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),
                                      Image("00000:99990:00900:09000:99990"), 
                                      Image("09999:00090:00900:09999:00000")]
-        self.menu()
+        check_mdp()
+        self.menu() # Toujour mettre en dernier!
 
     def menu(self):
         display.clear()
