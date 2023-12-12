@@ -34,7 +34,9 @@ import radio
 import random
 # import speech
 
-BYPASS_CONNECT = True
+from microbit import temperature
+
+BYPASS_CONNECT = False
 key = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
 radio.on()
@@ -455,20 +457,21 @@ class Child(Device):
 
                     previous = avg
 
+                if self.statut != self.old_statut:
+                    send_packet(key, "STATUT", str(self.statut))
+                    self.old_statut = self.statut
+
                 if button_b.is_pressed() and self.statut > 0:
                     music.play(music.PYTHON, wait=False)
                     wait_for_button_up_not_cenceled("b")
                 if button_a.is_pressed() and self.statut > 0:
                     music.stop()
 
-            if self.statut != self.old_statut:
-                send_packet(key, "STATUT", str(self.statut))
-                self.old_statut = self.statut
-            if message:
-                if message[0] == "CMD" and message[2] == "GETTEMP":
-                    sleep(100)
-                    send_packet(key, "TEMP", str(temperature()))
-                    print("TEMP: {}".format(temperature()))
+                if message:
+                    if message[0] == "CMD" and message[2] == "GETTEMP":
+                        sleep(100)
+                        send_packet(key, "TEMP", str(temperature()))
+                        print("TEMP: {}".format(temperature()))
 
 
 # device = Device()
