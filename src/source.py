@@ -15,6 +15,7 @@ from microbit import sleep
 from microbit import display
 from microbit import Image
 from microbit import accelerometer
+from microbit import temperature
 # from microbit import compass
 
 from microbit import microphone
@@ -24,8 +25,6 @@ from microbit import microphone
 # from microbit import spi
 # from microbit import uart
 
-# Extended
-
 # import audio
 # import machine
 import music
@@ -34,9 +33,9 @@ import radio
 import random
 # import speech
 
-from microbit import temperature
 
 BYPASS_CONNECT = False
+SILENT = False
 MDP = "09999:00000:00000:00000:00000"
 key = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
@@ -53,9 +52,11 @@ def get_id() -> int:
 
                 send_packet(key, "ID", "CONF") # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 2")
+                if not SILENT: music.play('c6:1')
                 return 2
             if message[0] == "ID" and message[2] == "CONF": # oui, tu peux! je vais etre la m:b 2 alors!
                 print("ID: 1")
+                if not SILENT: music.play('c5:1')
                 return 1
 
 def get_role() -> str:
@@ -71,6 +72,7 @@ def get_role() -> str:
             sleep(1000)
             display.clear()
             print("Parent")
+            if not SILENT: music.play('g5:1')
             return "P"
         if button_b.is_pressed() or message and message[0] == "ROLE" and message[2] == "E":
             send_packet(key, "ROLE", "P")
@@ -78,6 +80,7 @@ def get_role() -> str:
             sleep(1000)
             display.clear()
             print("Child")
+            if not SILENT: music.play('e5:1')
             return "E"
 
 def hashing(string):
@@ -119,6 +122,7 @@ def hashing(string):
 def establish_secure_connection():
     global key
     if ID == 1:
+        if not SILENT: music.play('g5:1')
         a = random.randint(0, 999999999)
         print("a: {}".format(a))
         send_packet(key, "SCE", a)
@@ -133,13 +137,16 @@ def establish_secure_connection():
                         key = key + hashing(str(a))
                         sleep(500)
                         send_packet(key, "SCE", "CHECK")
+                        if not SILENT: music.play('c6:1')
                         display.show(Image.YES)
                         sleep(500)
                         return
                     display.show(Image.NO)
+                    if not SILENT: music.play('c#:1')
                     sys.exit()
 
     if ID == 2:
+        if not SILENT: music.play('e5:1')
         display.show(Image("00000:00000:90909:00000:00000"))
         while True:
             message = unpack_data(radio.receive(), key)
@@ -157,10 +164,12 @@ def establish_secure_connection():
             if message:
                 if message[0] == "SCE":
                     if message[2] == "CHECK":
+                        if not SILENT: music.play('c5:1')
                         display.show(Image.YES)
                         sleep(500)
                         return
                     display.show(Image.NO)
+                    if not SILENT: music.play('bb:1')
                     sys.exit()
 
 
@@ -348,9 +357,14 @@ def check_mdp():
         # normalement le problème n'est pas ici
 
         if button_a.is_pressed() and button_b.is_pressed():
+            if not SILENT:
+                if count > 2:
+                    music.play(['c3:1'])
+                else:
+                    music.play(['g4:1'])
             count += 1
-            sleep(1000)
             imageMdp.place_pin_mdp()
+            wait_for_button_up_not_cenceled("ab")
 
         if button_a.is_pressed():
             if wait_for_button_up_not_cenceled("a"):
@@ -386,10 +400,12 @@ class Parent(Device):
         self.quantite_de_lait = 0
         self.image_lait = "00000:00000:00000:00000:00000"
         self.index_menu = 0
+        self.light = False
         self.menu_items = [("C", self.mode_compteur), # Compteur (quantité de lait)
-                        ("S", self.mode_statut), # Status
-                        ("T", self.mode_temperature), # Temperature
-                        ("F", self.mode_find)] # Find
+                           ("S", self.mode_statut), # Status
+                           ("T", self.mode_temperature), # Temperature
+                           ("F", self.mode_find), # Find
+                           ("L", self.mode_light)] # Light
         self.IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),
                                      Image("00000:99990:00900:09000:99990"), 
                                      Image("09999:00090:00900:09999:00000")]
@@ -413,12 +429,12 @@ class Parent(Device):
                 if wait_for_button_up_not_cenceled("a"):
                     self.index_menu -= 1
                     if self.index_menu < 0:
-                        self.index_menu = 3 # ici dans le futur il faudra mettre la longueur du dictionnaire du menu
+                        self.index_menu = len(self.menu_items)-1
 
             elif button_b.is_pressed():
                 if wait_for_button_up_not_cenceled("b"):
                     self.index_menu += 1
-                    if self.index_menu > 3:
+                    if self.index_menu > len(self.menu_items)-1:
                         self.index_menu = 0
 
     def add_lait(self) -> None:
@@ -504,10 +520,19 @@ class Parent(Device):
 
         # animation_counter = 0
         # display.show(self.IMAGE_SLEEP_SEQUENCE[1])
+        display.show("0")
         while not pin_logo.is_touched():
             message = unpack_data(radio.receive(), key)
             if message and message[0] == "STATUT":
                 display.show(str(message[2]))
+                if not SILENT:
+                    if message[2] == "0":
+                        music.play(['c4:1'])
+                    elif message[2] == "1":
+                        music.play(['e4:1'])
+                    else:
+                        music.play(['e5:4'])
+
             # if message[0] == "STATUT" and message[2] == "0":
                 # animation_counter += 1
                 # if animation_counter % 5 == 0:
@@ -531,6 +556,7 @@ class Parent(Device):
 
     def mode_find(self):
         """permet de trouver la m:b Enfant"""
+        send_packet(key, "CMD", "STARTFIND")
         while not pin_logo.is_touched():
             force_signal = radio.receive_full()
             if force_signal:
@@ -539,11 +565,27 @@ class Parent(Device):
 
                 if force_signal < -120:
                     display.show("9")
-                elif force_signal > -40:
+                elif force_signal > -30:
                     display.show("0")
                 else:
                     display.show(abs(force_signal)//10-2)
 
+        send_packet(key, "CMD", "STOPFIND")
+        self.menu()
+
+    def mode_light(self):
+        if self.light:
+            send_packet(key, "CMD", "STOPLIGHT")
+            display.show(Image.NO)
+            sleep(1000)
+            display.clear()
+            self.light = False
+        else:
+            send_packet(key, "CMD", "STARTLIGHT")
+            display.show(Image.YES)
+            sleep(1000)
+            display.clear()
+            self.light = True
         self.menu()
 
 class Child(Device):
@@ -554,6 +596,8 @@ class Child(Device):
         self.history = [0,0,0,0,0,0,0,0,0,0]
         self.playing_music = False
         self.quantite_de_lait = 0
+        self.findmode = False
+        self.show_statut = True
         self.main() # Toujour mettre en dernier!
 
     def main(self):
@@ -562,6 +606,9 @@ class Child(Device):
             for i in range(10000):
                 message = unpack_data(radio.receive(), key)
                 if i % 500 == 0:
+                    if self.findmode:
+                        send_packet(key, "PING", "PING")
+
                     avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z()+microphone.sound_level()*100)/4
                     speed = abs((avg - previous) / 100)
 
@@ -575,13 +622,13 @@ class Child(Device):
 
                     if agitation < 0.8:
                         self.statut = 0
-                        display.show("0")
+                        if self.show_statut: display.show("0")
                     elif agitation < 3.0:
                         self.statut = 1
-                        display.show("1")
+                        if self.show_statut: display.show("1")
                     elif agitation < 4.0:
                         self.statut = 2
-                        display.show("2")
+                        if self.show_statut: display.show("2")
 
                     previous = avg
 
@@ -598,18 +645,35 @@ class Child(Device):
                         self.playing_music = False
                     wait_for_button_up_not_cenceled("b")
                 if button_a.is_pressed():
-                    display.scroll(str(self.quantite_de_lait)+"0ml")
+                    if self.quantite_de_lait == 0:
+                        display.scroll("0ml")
+                    else:
+                        display.scroll(str(self.quantite_de_lait)+"0ml")
+
+                    if not self.show_statut:
+                        display.show(Image("99999:99999:99999:99999:99999"))
 
                 if message:
-                    if message[0] == "CMD"and message[2] == "GETTEMP":
+                    if message[0] == "CMD" and message[2] == "GETTEMP":
                         sleep(100)
                         send_packet(key, "TEMP", str(temperature()))
                         print("TEMP: {}".format(temperature()))
+                    if message[0] == "CMD" and message[2] == "STARTFIND":
+                        self.findmode = True
+                    if message[0] == "CMD" and message[2] == "STOPFIND":
+                        self.findmode = False
+                    if message[0] == "CMD" and message[2] == "STARTLIGHT":
+                        display.show(Image("99999:99999:99999:99999:99999"))
+                        self.show_statut = False
+                    if message[0] == "CMD" and message[2] == "STOPLIGHT":
+                        display.clear()
+                        self.show_statut = True
                     if message[0] == "SETQLAIT":
                         self.quantite_de_lait = int(message[2])
                         print("SETQLAIT: {}".format(self.quantite_de_lait))
 
-# device = Device()
+music.play('c6:1')
+
 if not BYPASS_CONNECT:
     ID = get_id()
     display.show(str(ID))
