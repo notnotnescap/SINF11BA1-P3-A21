@@ -35,6 +35,7 @@ from microbit import microphone
 
 BYPASS_CONNECT = False
 SILENT = False
+REACT_TO_SOUND = False
 MDP = "09999:00000:00000:00000:00000"
 KEY = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 
@@ -311,11 +312,7 @@ def check_password():
         display.show(Image(imageMdp.StrucMdpActu))
 
         if button_a.is_pressed() and button_b.is_pressed():
-            if not SILENT:
-                if count > 2:
-                    music.play(['c3:1'])
-                else:
-                    music.play(['g4:1'])
+            if not SILENT: music.play(['c:1'])
             count += 1
             imageMdp.place_pin_for_password()
             wait_for_button_up_not_cenceled("ab")
@@ -334,12 +331,14 @@ def check_password():
             if imageMdp.check_entered_password():
                 imageMdp.show_image_placed_pins()
                 display.show(Image.YES)
+                if not SILENT: music.play(['g:1'])
                 sleep(500)
                 display.clear()
                 return True
 
             imageMdp.show_image_placed_pins()
             display.show(Image.NO)
+            if not SILENT: music.play(['g#3:1'])
             sleep(500)
             display.clear()
             count = 0
@@ -364,9 +363,9 @@ class Parent(Device):
                            ("T", self.mode_temperature), # Temperature
                            ("F", self.mode_find), # Find
                            ("L", self.mode_light)] # Light
-        self.IMAGE_SLEEP_SEQUENCE = [Image("00000:00000:99099:00000:09990"),
-                                     Image("00000:99990:00900:09000:99990"), 
-                                     Image("09999:00090:00900:09999:00000")]
+        self.STATUT_IMAGES = [Image.HAPPY,
+                              Image("00900:00900:00900:00000:00900"),
+                              Image("90909:90909:90909:00000:90909")]
         check_password()
         self.menu() # Toujour mettre en dernier!
 
@@ -478,30 +477,20 @@ class Parent(Device):
     def mode_statut(self):
         """permet de voir l'état de l'Enfant"""
 
-        # animation_counter = 0
-        # display.show(self.IMAGE_SLEEP_SEQUENCE[1])
-        display.show("0")
+        display.show(self.STATUT_IMAGES[0])
         while not pin_logo.is_touched():
             message = unpack_data(radio.receive(), KEY)
             if message and message[0] == "STATUT":
-                display.show(str(message[2]))
-                if not SILENT:
-                    if message[2] == "0":
-                        music.play(['c4:1'])
-                    elif message[2] == "1":
-                        music.play(['e4:1'])
-                    else:
-                        music.play(['e5:4'])
+                # display.show(str(message[2]))
+                if message[2] == "0":
+                    display.show(self.STATUT_IMAGES[0])
+                elif message[2] == "1":
+                    display.show(self.STATUT_IMAGES[1])
+                    if not SILENT: music.play(['e4:1'])
+                else:
+                    display.show(self.STATUT_IMAGES[2])
+                    if not SILENT: music.play(['e5:8'])
 
-            # if message[0] == "STATUT" and message[2] == "0":
-                # animation_counter += 1
-                # if animation_counter % 5 == 0:
-                #     display.show(self.IMAGE_SLEEP_SEQUENCE[0])
-                # elif animation_counter % 2 == 0:
-                #     display.show(self.IMAGE_SLEEP_SEQUENCE[2])
-                # else:
-                #     display.show(self.IMAGE_SLEEP_SEQUENCE[1])
-            
         self.menu()
 
     def mode_temperature(self):
@@ -511,13 +500,30 @@ class Parent(Device):
             message = unpack_data(radio.receive(), KEY)
             if message:
                 if message[0] == "TEMP":
-                    display.scroll(str(message[2]))
+                    display.scroll(str(message[2]) + "C")
                     break
         self.menu()
 
     def mode_find(self):
         """permet de trouver la m:b Enfant"""
         send_packet(KEY, "CMD", "STARTFIND")
+
+        test_seq = [Image("00900:00900:00900:00000:00000"),
+                    Image("00009:00090:00900:00000:00000"),
+                    Image("00000:00090:00999:00000:00000"),
+                    Image("00000:00070:00900:00090:00009"),
+                    Image("00000:00050:00900:00900:00900"),
+                    Image("00000:00030:00900:09000:90000"),
+                    Image("00000:00020:99900:00000:00000"),
+                    Image("90000:09010:00900:00000:00000")]
+        for index, image in enumerate(test_seq*2):
+            if pin_logo.is_touched():
+                break
+            display.show(image)
+            if (index == 1 or index == 10) and not SILENT: music.play('c5:1')
+            sleep(200)
+        display.show(Image("00900:00900:00900:00000:00000"))
+        sleep(200)
         while not pin_logo.is_touched():
             force_signal = radio.receive_full()
             if force_signal:
@@ -573,8 +579,10 @@ class Child(Device):
                 if i % 500 == 0:
                     if self.findmode: # envoyer un signal radio pour aider la m:b Parent à trouver la m:b Enfant
                         send_packet(KEY, "PING", "PING")
-
-                    avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z()+microphone.sound_level()*100)/4
+                    if REACT_TO_SOUND:
+                        avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z()+microphone.sound_level()*100)/4
+                    else:
+                        avg = (accelerometer.get_x()+accelerometer.get_y()+accelerometer.get_z())/3
                     speed = abs((avg - previous) / 100)
 
                     self.history.append(speed)
@@ -598,14 +606,16 @@ class Child(Device):
                     previous = avg
 
                 if self.statut != self.old_statut:
-                    send_packet(KEY, "STATUT", str(self.statut))
+                    if not (self.statut == 1 and self.old_statut == 2):
+                        send_packet(KEY, "STATUT", str(self.statut))
                     self.old_statut = self.statut
 
-                if button_b.is_pressed() and self.statut > 0:
-                    if not self.playing_music:
-                        music.play(music.PYTHON, wait=False)
-                        self.playing_music = True
-                    else:
+                if button_b.is_pressed():
+                    if self.statut > 0:
+                        if not self.playing_music:
+                            music.play(music.PYTHON, wait=False)
+                            self.playing_music = True
+                    if self.playing_music:
                         music.stop()
                         self.playing_music = False
                     wait_for_button_up_not_cenceled("b")
