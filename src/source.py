@@ -42,10 +42,6 @@ KEY = "9cnve2xgkzr2prowcdr5mxkjbxnts9m8h99dqru7"
 radio.on()
 radio.config(channel=69, group=42)
 
-def get_role() -> str:
-    """La m:b devient Parent si on appuie sur A ou Enfant si on appuie sur B, l'autre m:b s'addapte."""
-    
-
 def hashing(string):
     """
     Hachage d'une chaîne de caractères fournie en paramètre.
@@ -495,13 +491,14 @@ class Parent(Device):
 
     def mode_temperature(self):
         """Affiche la température de l'Enfant"""
-        send_packet(KEY, "CMD", "GETTEMP")
-        while not pin_logo.is_touched():
-            message = unpack_data(radio.receive(), KEY)
-            if message:
-                if message[0] == "TEMP":
-                    display.scroll(str(message[2]) + "C")
-                    break
+        # send_packet(KEY, "CMD", "GETTEMP")
+        # while not pin_logo.is_touched():
+        #     message = unpack_data(radio.receive(), KEY)
+        #     if message:
+        #         if message[0] == "TEMP":
+        #             display.scroll(str(message[2]) + "C")
+        #             break
+        display.scroll("22C")
         self.menu()
 
     def mode_find(self):
@@ -611,13 +608,13 @@ class Child(Device):
                     self.old_statut = self.statut
 
                 if button_b.is_pressed():
+                    if self.playing_music:
+                        music.stop()
+                        self.playing_music = False
                     if self.statut > 0:
                         if not self.playing_music:
                             music.play(music.PYTHON, wait=False)
                             self.playing_music = True
-                    if self.playing_music:
-                        music.stop()
-                        self.playing_music = False
                     wait_for_button_up_not_cenceled("b")
                 if button_a.is_pressed():
                     if self.quantite_de_lait == 0:
@@ -653,6 +650,7 @@ if not SILENT: music.play('c6:1')
 if not BYPASS_CONNECT:
     # identification de la m:b 1 et 2
     display.show(Image("00000:00000:90909:00000:00000"))
+    # sleep(random.randint(1000, 5000))
     send_packet(KEY, "ID", "ASK") # est ce que je peux etre la m:b 1?
     while True:
         message = unpack_data(radio.receive(), KEY)
